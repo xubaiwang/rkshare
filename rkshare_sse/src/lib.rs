@@ -78,9 +78,9 @@ pub async fn stock_sse_summary() -> Result<DataFrame, Box<dyn Error>> {
         .lazy()
         .select([
             col("项目"),
-            col("股票").cast(DataType::Float32),
-            col("主板").cast(DataType::Float32),
-            col("科创板").cast(DataType::Float32),
+            col("股票").cast(DataType::Float64),
+            col("主板").cast(DataType::Float64),
+            col("科创板").cast(DataType::Float64),
         ])
         .collect()?;
 
@@ -135,14 +135,14 @@ pub async fn stock_sse_deal_daily(date: &str) -> Result<DataFrame, Box<dyn Error
                 4 => lit(f32::NAN),
                 _ => nth(5),
             }
-            .cast(DataType::Float32)
+            .cast(DataType::Float64)
             .alias("股票"),
-            nth(1).alias("主板A").cast(DataType::Float32),
-            nth(2).alias("主板B").cast(DataType::Float32),
-            nth(3).alias("科创板").cast(DataType::Float32),
+            nth(1).alias("主板A").cast(DataType::Float64),
+            nth(2).alias("主板B").cast(DataType::Float64),
+            nth(3).alias("科创板").cast(DataType::Float64),
             if width >= 6 { nth(5) } else { lit(f32::NAN) }
                 .alias("股票回购")
-                .cast(DataType::Float32),
+                .cast(DataType::Float64),
         ])
         .collect()?;
 
