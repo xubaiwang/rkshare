@@ -7,7 +7,7 @@ Port [akshare](https://github.com/akfamily/akshare) to Rust for performance and 
 
 ## Roadmap
 
-- [ ] Feature parity
+- [ ] Feature parity, see [FEATURES.md](./FEATURES.md)
 - [ ] Python binding
 - [ ] JS/TS/WASM binding
 - [ ] RESTful API server & Docker
