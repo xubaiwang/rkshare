@@ -1054,7 +1054,7 @@
 - [ ] stock_zh_ah_spot_em
 - [ ] stock_hsgt_sh_hk_spot_em
 - [ ] stock_industry_clf_hist_sw
-- [ ] stock_szse_summary
+- [x] stock_szse_summary
 - [ ] stock_szse_area_summary
 - [ ] stock_szse_sector_summary
 - [x] stock_sse_summary

@@ -1,9 +1,10 @@
 [package]
-name = "rkshare_sse"
+name = "rkshare_szse"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+calamine = "0.29.0"
 either = { workspace = true }
 polars = { workspace = true }
 reqwest = { workspace = true }
