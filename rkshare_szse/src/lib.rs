@@ -1,4 +1,4 @@
-use std::{error::Error, io::Cursor};
+use std::io::Cursor;
 
 use bytes::Bytes;
 use calamine::{Reader, Xlsx, open_workbook_from_rs};
@@ -9,7 +9,7 @@ use polars::{
 };
 use url::Url;
 
-fn read_excel(bytes: Bytes) -> Result<DataFrame, Box<dyn Error>> {
+fn read_excel(bytes: Bytes) -> anyhow::Result<DataFrame> {
     let cursor = Cursor::new(bytes);
     let mut workbook: Xlsx<_> = open_workbook_from_rs(cursor)?;
 
@@ -30,7 +30,7 @@ fn read_excel(bytes: Bytes) -> Result<DataFrame, Box<dyn Error>> {
     Ok(df)
 }
 
-pub async fn stock_szse_summary(date: &str) -> Result<DataFrame, Box<dyn Error>> {
+pub async fn stock_szse_summary(date: &str) -> anyhow::Result<DataFrame> {
     let url = Url::parse_with_params(
         "http://www.szse.cn/api/report/ShowReport",
         [
@@ -71,7 +71,7 @@ pub async fn stock_szse_summary(date: &str) -> Result<DataFrame, Box<dyn Error>>
     Ok(df)
 }
 
-pub async fn stock_szse_area_summary(date: &str) -> Result<DataFrame, Box<dyn Error>> {
+pub async fn stock_szse_area_summary(date: &str) -> anyhow::Result<DataFrame> {
     let url = Url::parse_with_params(
         "http://www.szse.cn/api/report/ShowReport",
         [

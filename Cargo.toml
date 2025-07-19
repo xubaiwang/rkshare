@@ -1,8 +1,9 @@
 [workspace]
 resolver = "3"
-members = ["rkshare", "rkshare_sse", "rkshare_szse"]
+members = ["rkshare", "rkshare_server", "rkshare_sse", "rkshare_szse"]
 
 [workspace.dependencies]
+anyhow = "1.0.98"
 either = "1.15.0"
 polars = { version = "0.49.1", features = ["json", "polars-io", "lazy", "strings", "regex"] }
 reqwest = { version = "0.12.22", features = ["json"] }

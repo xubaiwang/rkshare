@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+anyhow = { workspace = true }
 bytes = "1.10.1"
 calamine = "0.29.0"
 either = { workspace = true }

@@ -1,5 +1,5 @@
 use core::f32;
-use std::{error::Error, io::Cursor};
+use std::io::Cursor;
 
 use either::Either;
 use polars::{io::SerReader, prelude::*};
@@ -10,7 +10,7 @@ use url::Url;
 
 const BASE: &str = "http://query.sse.com.cn/commonQuery.do";
 
-fn configured_client() -> Result<Client, Box<dyn Error>> {
+fn configured_client() -> anyhow::Result<Client> {
     let mut headers = HeaderMap::new();
     headers.insert("Referer", "https://www.sse.com.cn".parse()?);
     headers.insert(
@@ -34,7 +34,7 @@ struct SseMessage {
     result: Box<RawValue>,
 }
 
-pub async fn stock_sse_summary() -> Result<DataFrame, Box<dyn Error>> {
+pub async fn stock_sse_summary() -> anyhow::Result<DataFrame> {
     let url = Url::parse_with_params(
         BASE,
         &[
@@ -87,7 +87,7 @@ pub async fn stock_sse_summary() -> Result<DataFrame, Box<dyn Error>> {
     Ok(df)
 }
 
-pub async fn stock_sse_deal_daily(date: &str) -> Result<DataFrame, Box<dyn Error>> {
+pub async fn stock_sse_deal_daily(date: &str) -> anyhow::Result<DataFrame> {
     let url = Url::parse_with_params(
         BASE,
         &[

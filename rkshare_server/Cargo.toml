@@ -1,0 +1,11 @@
+[package]
+name = "rkshare_server"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+axum = { version = "0.8.4", features = ["macros"] }
+polars.workspace = true
+rkshare = { path = "../rkshare" }
+serde = { workspace = true, features = ["derive"] }
+tokio = { workspace = true }
