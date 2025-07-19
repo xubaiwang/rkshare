@@ -1,6 +1,6 @@
 # Feature Parity Checklist
 
-> [!NOTE]:
+> [!NOTE]
 > naive `rg` result, many false positive
 
 - [ ] article_ff_crr
