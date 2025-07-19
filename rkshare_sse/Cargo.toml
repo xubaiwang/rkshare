@@ -9,6 +9,7 @@ polars = { version = "0.49.1", features = ["json", "polars-io", "lazy"] }
 reqwest = { version = "0.12.22", features = ["json"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = { version = "1.0.140", features = ["raw_value"] }
+url = "2.5.4"
 
 [dev-dependencies]
 tokio = { version = "1.46.1", features = ["full"] }
