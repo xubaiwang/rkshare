@@ -30,6 +30,7 @@
             packages = [
               toolchain
               maturin
+              pyright
             ];
             buildInputs = [
               openssl

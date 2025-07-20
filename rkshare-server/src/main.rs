@@ -1,5 +1,4 @@
-use std::io::Cursor;
-
+use arrow::{array::RecordBatch, csv::Writer};
 use axum::{
     Router,
     extract::Query,
@@ -7,14 +6,14 @@ use axum::{
     response::IntoResponse,
     routing::get,
 };
-use polars::{frame::DataFrame, io::SerWriter, prelude::CsvWriter};
 use serde::Deserialize;
 
 #[tokio::main]
 async fn main() {
     let app = Router::new().nest("/api/public", public_api_routes());
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
+    println!("Listening on 0.0.0.0:8080");
     axum::serve(listener, app).await.unwrap();
 }
 
@@ -42,31 +41,31 @@ struct DateQuery {
 }
 
 async fn stock_sse_summary() -> impl IntoResponse {
-    df_to_csv_response(rkshare::stock_sse_summary().await.unwrap())
+    arrow_to_csv_response(rkshare::sse::stock::summary().await.unwrap())
 }
 
 async fn stock_sse_deal_daily(query: Query<DateQuery>) -> impl IntoResponse {
-    df_to_csv_response(rkshare::stock_sse_deal_daily(&query.date).await.unwrap())
+    arrow_to_csv_response(rkshare::sse::stock::deal_daily(&query.date).await.unwrap())
 }
 
 async fn stock_szse_summary(query: Query<DateQuery>) -> impl IntoResponse {
-    df_to_csv_response(rkshare::stock_szse_summary(&query.date).await.unwrap())
+    arrow_to_csv_response(rkshare::szse::stock::summary(&query.date).await.unwrap())
 }
 
 async fn stock_szse_area_summary(query: Query<DateQuery>) -> impl IntoResponse {
-    df_to_csv_response(rkshare::stock_szse_area_summary(&query.date).await.unwrap())
+    arrow_to_csv_response(
+        rkshare::szse::stock::area_summary(&query.date)
+            .await
+            .unwrap(),
+    )
 }
 
-fn df_to_csv_response(mut df: DataFrame) -> impl IntoResponse {
-    let mut cursor = Cursor::new(Vec::new());
-    CsvWriter::new(&mut cursor)
-        .include_header(true)
-        .finish(&mut df)
-        .unwrap();
-    let inner = cursor.into_inner();
+fn arrow_to_csv_response(batch: RecordBatch) -> impl IntoResponse {
+    let mut writer = Writer::new(Vec::new());
+    writer.write(&batch).unwrap();
     (
         StatusCode::OK,
         [(header::CONTENT_TYPE, "text/csv; charset=utf-8")],
-        inner,
+        writer.into_inner(),
     )
 }

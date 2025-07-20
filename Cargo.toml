@@ -4,8 +4,7 @@ members = ["pyo3-rkshare","rkshare", "rkshare-server", "rkshare-sse", "rkshare-s
 
 [workspace.dependencies]
 anyhow = "1.0.98"
-either = "1.15.0"
-polars = { version = "0.49.1", features = ["json", "polars-io", "lazy", "strings", "regex"] }
+arrow = "55.2.0"
 reqwest = { version = "0.12.22", features = ["json"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = { version = "1.0.140", features = ["raw_value"] }
