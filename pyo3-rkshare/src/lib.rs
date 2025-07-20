@@ -1,8 +1,5 @@
-use std::sync::Arc;
-
-use arrow::array::ArrayRef;
 use pyo3::prelude::*;
-use pyo3_arrow::{PyArray, error::PyArrowResult};
+use pyo3_arrow::error::PyArrowResult;
 
 #[pymodule]
 mod rkshare {
@@ -10,19 +7,56 @@ mod rkshare {
 
     #[pymodule]
     mod akshare {
+        use pyo3_arrow::PyRecordBatch;
+
         use super::*;
 
         #[pyfunction]
-        fn double(x: usize) -> usize {
-            x * 2
+        pub fn stock_sse_summary(py: Python) -> PyArrowResult<PyObject> {
+            let rt = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .unwrap();
+            let batch = rt.block_on(::rkshare::sse::stock::summary()).unwrap();
+            let py_batch = PyRecordBatch::new(batch);
+            Ok(py_batch.to_arro3(py)?.unbind())
         }
 
         #[pyfunction]
-        pub fn take(py: Python, value: u32) -> PyArrowResult<PyObject> {
-            let output_array = arrow::array::UInt32Array::from_iter([value; 3]);
-            let array_ref: ArrayRef = Arc::new(output_array);
-            let py_array = PyArray::from_array_ref(array_ref);
-            Ok(py_array.to_arro3(py)?.unbind())
+        pub fn stock_sse_deal_daily(py: Python, date: &str) -> PyArrowResult<PyObject> {
+            let rt = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .unwrap();
+            let batch = rt
+                .block_on(::rkshare::sse::stock::deal_daily(date))
+                .unwrap();
+            let py_batch = PyRecordBatch::new(batch);
+            Ok(py_batch.to_arro3(py)?.unbind())
+        }
+
+        #[pyfunction]
+        pub fn stock_szse_summary(py: Python, date: &str) -> PyArrowResult<PyObject> {
+            let rt = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .unwrap();
+            let batch = rt.block_on(::rkshare::szse::stock::summary(date)).unwrap();
+            let py_batch = PyRecordBatch::new(batch);
+            Ok(py_batch.to_arro3(py)?.unbind())
+        }
+
+        #[pyfunction]
+        pub fn stock_szse_area_summary(py: Python, date: &str) -> PyArrowResult<PyObject> {
+            let rt = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .unwrap();
+            let batch = rt
+                .block_on(::rkshare::szse::stock::area_summary(date))
+                .unwrap();
+            let py_batch = PyRecordBatch::new(batch);
+            Ok(py_batch.to_arro3(py)?.unbind())
         }
 
         #[pymodule_init]

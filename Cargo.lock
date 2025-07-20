@@ -1643,6 +1643,7 @@ dependencies = [
  "pyo3",
  "pyo3-arrow",
  "rkshare",
+ "tokio",
 ]
 
 [[package]]
