@@ -1,0 +1,14 @@
+[package]
+name = "pyo3-rkshare"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "rkshare"
+crate-type = ["cdylib"]
+
+[dependencies]
+arrow = "55.2.0"
+arrow-select = "55.2.0"
+pyo3 = { version = "0.25.1", features = ["extension-module"] }
+pyo3-arrow = "0.10.1"

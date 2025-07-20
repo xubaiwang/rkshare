@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["rkshare", "rkshare_server", "rkshare_sse", "rkshare_szse"]
+members = ["pyo3-rkshare","rkshare", "rkshare-server", "rkshare-sse", "rkshare-szse"]
 
 [workspace.dependencies]
 anyhow = "1.0.98"

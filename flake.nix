@@ -29,9 +29,11 @@
           mkShell {
             packages = [
               toolchain
+              maturin
             ];
             buildInputs = [
               openssl
+              python3
             ];
             nativeBuildInputs = [
               pkg-config
