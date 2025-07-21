@@ -1813,6 +1813,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "rkshare-xq"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "argh",
+ "arrow",
+ "bytes",
+ "parse-display",
+ "reqwest",
+ "serde",
+ "serde_arrow",
+ "serde_json",
+ "tokio",
+ "url",
+]
+
+[[package]]
 name = "rust-fuzzy-search"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
