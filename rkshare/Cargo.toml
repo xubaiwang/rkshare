@@ -4,5 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-rkshare-sse = { path = "../rkshare-sse" }
-rkshare-szse = { path = "../rkshare-szse" }
+rkshare-eastmoney.path = "../rkshare-eastmoney"
+rkshare-sse.path = "../rkshare-sse"
+rkshare-szse.path = "../rkshare-szse"
+rkshare-xueqiu.path = "../rkshare-xueqiu"
+
+[features]
+cli = ["rkshare-eastmoney/cli"]

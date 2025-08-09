@@ -1,11 +1,19 @@
 [package]
-name = "rkshare-server"
+name = "rkshare-tools"
 version = "0.1.0"
 edition = "2024"
 
+[[bin]]
+name = "rkshare"
+path = "src/main.rs"
+doc = false
+
 [dependencies]
+anyhow.workspace = true
 arrow = { workspace = true, features = ["csv"] }
 axum = { version = "0.8.4", features = ["macros"] }
-rkshare = { path = "../rkshare" }
+rkshare = { path = "../rkshare", features = ["cli"] }
 serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
 tokio = { workspace = true }
+argh = "0.1.13"

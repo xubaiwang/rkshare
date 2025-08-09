@@ -5,6 +5,7 @@ edition = "2024"
 
 [lib]
 name = "rkshare"
+doc = false
 crate-type = ["cdylib"]
 
 [dependencies]

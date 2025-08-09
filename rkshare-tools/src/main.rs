@@ -1,4 +1,5 @@
-use arrow::{array::RecordBatch, csv::Writer};
+use argh::FromArgs;
+use arrow::{array::RecordBatch, csv::Writer, util::pretty::pretty_format_batches};
 use axum::{
     Router,
     extract::Query,
@@ -9,13 +10,48 @@ use axum::{
 use serde::Deserialize;
 
 #[tokio::main]
-async fn main() {
-    let app = Router::new().nest("/api/public", public_api_routes());
+async fn main() -> anyhow::Result<()> {
+    let args: Args = argh::from_env();
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
-    println!("Listening on 0.0.0.0:8080");
-    axum::serve(listener, app).await.unwrap();
+    match args.subcommand {
+        Command::Basic(args) => {
+            println!("{}", args.symbol);
+            let batch = rkshare::eastmoney::basic_org_info(&args.symbol.to_extended()).await?;
+            println!("{}", pretty_format_batches(&[batch])?);
+        }
+    }
+
+    // let raw = rkshare::eastmoney::basic_org_info::raw("301232.SZ").await?;
+    // let value: Value = serde_json::from_slice(&raw)?;
+    // let formatted = serde_json::to_string_pretty(&value)?;
+    // println!("{formatted}");
+
+    Ok(())
 }
+
+/// Doc
+#[derive(FromArgs, Debug)]
+struct Args {
+    /// doc
+    #[argh(subcommand)]
+    subcommand: Command,
+}
+
+/// The basic command
+#[derive(FromArgs, Debug)]
+#[argh(subcommand)]
+enum Command {
+    Basic(rkshare::eastmoney::basic_org_info::Args),
+}
+
+// #[tokio::main]
+// async fn main() {
+//     let app = Router::new().nest("/api/public", public_api_routes());
+
+//     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
+//     println!("Listening on 0.0.0.0:8080");
+//     axum::serve(listener, app).await.unwrap();
+// }
 
 macro_rules! router_gets {
     ($($name:ident),*$(,)?) => {
