@@ -4,5 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-# TODO(upstream): rename_all is still released. https://github.com/JelteF/derive_more/blob/c2b1a62cb5994ebeaab7550d57d09b53bef6e31e/CHANGELOG.md?plain=1#L12
-derive_more = { version = "2.0.1", features = ["display"], git = "https://github.com/JelteF/derive_more" }
+argh = { workspace = true, optional = true }
+arrow.workspace = true
+bytes.workspace = true
+derive_more = { version = "2.0.1", features = ["display", "from"] }
+
+[features]
+cli = ["dep:argh"]
+default = ["cli"]
+

@@ -10,10 +10,13 @@ doc = false
 
 [dependencies]
 anyhow.workspace = true
-arrow = { workspace = true, features = ["csv"] }
-axum = { version = "0.8.4", features = ["macros"] }
+bytes.workspace = true
+arrow = { workspace = true, features = ["csv", "prettyprint"] }
 rkshare = { path = "../rkshare", features = ["cli"] }
-serde = { workspace = true, features = ["derive"] }
+serde.workspace = true
 serde_json.workspace = true
 tokio = { workspace = true }
-argh = "0.1.13"
+rkshare-utils.path = "../rkshare-utils"
+
+# 命令行
+argh.workspace = true

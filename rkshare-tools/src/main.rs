@@ -1,107 +1,13 @@
-use argh::FromArgs;
-use arrow::{array::RecordBatch, csv::Writer, util::pretty::pretty_format_batches};
-use axum::{
-    Router,
-    extract::Query,
-    http::{StatusCode, header},
-    response::IntoResponse,
-    routing::get,
-};
-use serde::Deserialize;
+//! 本模块实现了 rkshare 的基本 CLI, server 等.
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
+use cli::Args;
+
+mod cli;
+mod pretty;
+
+fn main() -> anyhow::Result<()> {
     let args: Args = argh::from_env();
-
-    match args.subcommand {
-        Command::Basic(args) => {
-            println!("{}", args.symbol);
-            let batch = rkshare::eastmoney::basic_org_info(&args.symbol.to_extended()).await?;
-            println!("{}", pretty_format_batches(&[batch])?);
-        }
-    }
-
-    // let raw = rkshare::eastmoney::basic_org_info::raw("301232.SZ").await?;
-    // let value: Value = serde_json::from_slice(&raw)?;
-    // let formatted = serde_json::to_string_pretty(&value)?;
-    // println!("{formatted}");
+    args.action()?;
 
     Ok(())
-}
-
-/// Doc
-#[derive(FromArgs, Debug)]
-struct Args {
-    /// doc
-    #[argh(subcommand)]
-    subcommand: Command,
-}
-
-/// The basic command
-#[derive(FromArgs, Debug)]
-#[argh(subcommand)]
-enum Command {
-    Basic(rkshare::eastmoney::basic_org_info::Args),
-}
-
-// #[tokio::main]
-// async fn main() {
-//     let app = Router::new().nest("/api/public", public_api_routes());
-
-//     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
-//     println!("Listening on 0.0.0.0:8080");
-//     axum::serve(listener, app).await.unwrap();
-// }
-
-macro_rules! router_gets {
-    ($($name:ident),*$(,)?) => {
-        Router::new()
-        $(
-            .route(concat!("/", stringify!($name)), get($name))
-        )*
-    };
-}
-
-fn public_api_routes() -> Router {
-    router_gets!(
-        stock_sse_summary,
-        stock_sse_deal_daily,
-        stock_szse_summary,
-        stock_szse_area_summary,
-    )
-}
-
-#[derive(Deserialize)]
-struct DateQuery {
-    date: String,
-}
-
-async fn stock_sse_summary() -> impl IntoResponse {
-    arrow_to_csv_response(rkshare::sse::stock::summary().await.unwrap())
-}
-
-async fn stock_sse_deal_daily(query: Query<DateQuery>) -> impl IntoResponse {
-    arrow_to_csv_response(rkshare::sse::stock::deal_daily(&query.date).await.unwrap())
-}
-
-async fn stock_szse_summary(query: Query<DateQuery>) -> impl IntoResponse {
-    arrow_to_csv_response(rkshare::szse::stock::summary(&query.date).await.unwrap())
-}
-
-async fn stock_szse_area_summary(query: Query<DateQuery>) -> impl IntoResponse {
-    arrow_to_csv_response(
-        rkshare::szse::stock::area_summary(&query.date)
-            .await
-            .unwrap(),
-    )
-}
-
-fn arrow_to_csv_response(batch: RecordBatch) -> impl IntoResponse {
-    let mut writer = Writer::new(Vec::new());
-    writer.write(&batch).unwrap();
-    (
-        StatusCode::OK,
-        [(header::CONTENT_TYPE, "text/csv; charset=utf-8")],
-        writer.into_inner(),
-    )
 }

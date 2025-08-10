@@ -4,17 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-anyhow = { workspace = true }
-arrow = { workspace = true, features = ["prettyprint"] }
-bytes = "1.10.1"
-reqwest = { workspace = true }
-serde = { workspace = true }
-serde_arrow = { version = "0.13.4", features = ["arrow-55"] }
-serde_json = { workspace = true }
-url = { workspace = true }
+anyhow.workspace = true
+arrow.workspace = true
+bytes.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_arrow.workspace = true
+serde_json.workspace = true
+url.workspace = true
 
-[dev-dependencies]
-tokio = { workspace = true }
-arrow = { workspace = true, features = ["prettyprint"] }
-argh = "0.1.13"
-parse-display = "0.10.0"

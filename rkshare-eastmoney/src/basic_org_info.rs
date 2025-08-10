@@ -1,33 +1,33 @@
 //! 公司概况 > 基本资料
 
+use anyhow::anyhow;
 use arrow::{array::RecordBatch, datatypes::FieldRef};
-use rkshare_utils::{Symbol, mapping};
+use rkshare_utils::{
+    Symbol,
+    data::{TypeHint, TypedBytes},
+    mapping,
+};
 use serde::Deserialize;
 use serde_arrow::schema::{SchemaLike, TracingOptions};
 use url::Url;
 
-/// Desc.
-#[derive(Debug)]
-#[cfg_attr(
-    feature = "cli",
-    derive(argh::FromArgs),
-    argh(subcommand, name = "basic_org_info")
-)]
-pub struct Args {
-    /// the symbol
-    #[cfg_attr(feature = "cli", argh(positional))]
-    pub symbol: Symbol,
-}
-
 /// Example: 301232.SZ
-pub async fn raw(symbol: &str) -> anyhow::Result<bytes::Bytes> {
+pub async fn raw(symbol: impl TryInto<Symbol>) -> anyhow::Result<TypedBytes> {
+    let symbol: Symbol = symbol
+        .try_into()
+        // TODO: correct error type
+        .map_err(|_| anyhow!("cannot convert to symbol"))?;
+
     let url = Url::parse_with_params(
         "https://datacenter.eastmoney.com/securities/api/data/v1/get",
         [
             ("reportName", "RPT_F10_BASIC_ORGINFO"),
             ("columns", "ALL"),
             ("quoteColumns", ""),
-            ("filter", &format!(r#"(SECUCODE="{symbol}")"#)),
+            (
+                "filter",
+                &format!(r#"(SECUCODE="{}")"#, symbol.to_extended()),
+            ),
             ("pageNumber", "1"),
             ("pageSize", "1"),
             ("sortTypes", ""),
@@ -39,10 +39,10 @@ pub async fn raw(symbol: &str) -> anyhow::Result<bytes::Bytes> {
     )?;
 
     let bytes = reqwest::get(url).await?.bytes().await?;
-    Ok(bytes)
+    Ok((bytes, TypeHint::Json).into())
 }
 
-pub async fn arrow(symbol: &str) -> anyhow::Result<RecordBatch> {
+pub async fn arrow(symbol: impl TryInto<Symbol>) -> anyhow::Result<RecordBatch> {
     let raw = raw(symbol).await?;
     let items = serde_json::from_slice::<Message<Item>>(&raw)?.result.data;
     let fields =
@@ -98,4 +98,37 @@ mapping! { Item,
     ACCOUNTFIRM_NAME => "会计师事务所": String,
     ORG_PROFILE => "公司简介": String,
     BUSINESS_SCOPE => "经营范围": String,
+}
+
+/// CLI 相关包
+#[cfg(feature = "cli")]
+pub mod cli {
+    use anyhow::Result;
+    use argh::FromArgs;
+    use rkshare_utils::{Symbol, data::Data};
+
+    #[derive(FromArgs, Debug)]
+    /// 公司概况>基本资料
+    #[argh(subcommand, name = "basic_org_info")]
+    pub struct Args {
+        #[argh(positional)]
+        /// 股票代码
+        symbol: Symbol,
+        #[argh(subcommand)]
+        raw: Option<Raw>,
+    }
+
+    #[derive(FromArgs, Debug)]
+    /// 原始数据
+    #[argh(subcommand, name = "raw")]
+    struct Raw {}
+
+    impl Args {
+        pub async fn call(self) -> Result<Data> {
+            Ok(match &self.raw {
+                None => super::arrow(self.symbol).await?.into(),
+                Some(_) => super::raw(self.symbol).await?.into(),
+            })
+        }
+    }
 }
