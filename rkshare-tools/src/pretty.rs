@@ -1,7 +1,7 @@
 //! 该模块用于美化数据内容输出。
 
 use arrow::util::pretty::pretty_format_batches;
-use rkshare_utils::data::{Data, TypeHint};
+use rkshare::utils::data::{Data, TypeHint};
 use serde_json::Value;
 
 pub fn pretty_print(data: &Data) -> anyhow::Result<()> {

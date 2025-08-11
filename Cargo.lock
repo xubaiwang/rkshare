@@ -1744,7 +1744,6 @@ dependencies = [
  "arrow",
  "bytes",
  "rkshare",
- "rkshare-utils",
  "serde",
  "serde_json",
  "tokio",
@@ -1754,6 +1753,7 @@ dependencies = [
 name = "rkshare-utils"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "argh",
  "arrow",
  "bytes",

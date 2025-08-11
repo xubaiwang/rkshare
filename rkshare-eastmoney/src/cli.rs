@@ -1,6 +1,6 @@
 use anyhow::Result;
 use argh::FromArgs;
-use rkshare_utils::data::Data;
+use rkshare_utils::data::{Data, Fetch};
 
 #[derive(FromArgs, Debug)]
 /// 东方财富
@@ -16,10 +16,10 @@ pub enum Subcommand {
     BasicOrgInfo(crate::basic_org_info::cli::Args),
 }
 
-impl Eastmoney {
-    pub async fn call(self) -> Result<Data> {
+impl Fetch for Eastmoney {
+    async fn fetch(self) -> Result<Data> {
         match self.subcommand {
-            Subcommand::BasicOrgInfo(args) => args.call().await,
+            Subcommand::BasicOrgInfo(args) => args.fetch().await,
         }
     }
 }

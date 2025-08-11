@@ -54,3 +54,10 @@ impl Deref for TypedBytes {
         &self.bytes
     }
 }
+
+/// 数据接口。
+pub trait Fetch {
+    /// 请求数据。
+    // TODO: 未来应该构建自己的错误类型
+    fn fetch(self) -> impl std::future::Future<Output = anyhow::Result<Data>> + Send;
+}

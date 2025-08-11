@@ -105,7 +105,10 @@ mapping! { Item,
 pub mod cli {
     use anyhow::Result;
     use argh::FromArgs;
-    use rkshare_utils::{Symbol, data::Data};
+    use rkshare_utils::{
+        Symbol,
+        data::{Data, Fetch},
+    };
 
     #[derive(FromArgs, Debug)]
     /// 公司概况>基本资料
@@ -119,12 +122,12 @@ pub mod cli {
     }
 
     #[derive(FromArgs, Debug)]
-    /// 原始数据
+    /// 输出原始数据
     #[argh(subcommand, name = "raw")]
     struct Raw {}
 
-    impl Args {
-        pub async fn call(self) -> Result<Data> {
+    impl Fetch for Args {
+        async fn fetch(self) -> Result<Data> {
             Ok(match &self.raw {
                 None => super::arrow(self.symbol).await?.into(),
                 Some(_) => super::raw(self.symbol).await?.into(),

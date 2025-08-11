@@ -1,6 +1,8 @@
 use argh::FromArgs;
-use rkshare::eastmoney::cli::Eastmoney;
-use rkshare_utils::data::Data;
+use rkshare::{
+    eastmoney::cli::Eastmoney,
+    utils::data::{Data, Fetch},
+};
 
 use crate::pretty::pretty_print;
 
@@ -21,14 +23,16 @@ pub enum Subcommand {
 
 impl Get {
     pub fn action(self) -> anyhow::Result<()> {
-        let data = rt()?.block_on(self.call())?;
+        let data = rt()?.block_on(self.fetch())?;
         pretty_print(&data)?;
         Ok(())
     }
+}
 
-    pub fn call(self) -> impl Future<Output = anyhow::Result<Data>> {
+impl Fetch for Get {
+    fn fetch(self) -> impl Future<Output = anyhow::Result<Data>> {
         match self.subcommand {
-            Subcommand::Eastmoney(eastmoney) => eastmoney.call(),
+            Subcommand::Eastmoney(eastmoney) => eastmoney.fetch(),
         }
     }
 }
