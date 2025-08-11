@@ -1,12 +1,22 @@
-use arrow::{array::RecordBatch, datatypes::FieldRef};
-use bytes::Bytes;
-use serde::{Deserialize, Serialize};
-use serde_arrow::schema::{SchemaLike, TracingOptions};
+use std::{marker::PhantomData, sync::Arc};
+
+use anyhow::Context;
+use arrow::{array::RecordBatch, datatypes::Schema, json::ReaderBuilder};
+use bon::Builder;
+use rkshare_utils::{
+    FieldsInfo, PhantomArg,
+    data::{Data, Fetch, TypeHint, TypedBytes},
+    mapping,
+};
+use serde::{
+    Deserialize, Deserializer, Serialize,
+    de::{self, DeserializeOwned},
+};
 use url::Url;
 
 use crate::utils::{CommonMessage, configured_client, try_from_str};
 
-pub async fn raw(date: &str) -> anyhow::Result<Bytes> {
+pub async fn raw(date: &str) -> anyhow::Result<TypedBytes> {
     let url = Url::parse_with_params(
         "http://query.sse.com.cn/commonQuery.do",
         &[
@@ -22,74 +32,118 @@ pub async fn raw(date: &str) -> anyhow::Result<Bytes> {
 
     let raw_bytes = configured_client()?.get(url).send().await?.bytes().await?;
 
-    Ok(raw_bytes)
+    Ok((raw_bytes, TypeHint::Json).into())
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-pub enum ProductCode {
-    #[serde(rename(serialize = "主板A", deserialize = "01"))]
-    MainA,
-    #[serde(rename(serialize = "主板B", deserialize = "02"))]
-    MainB,
-    #[serde(rename(serialize = "科创版", deserialize = "03"))]
-    Star,
-    #[serde(rename(serialize = "股票回购", deserialize = "11"))]
-    StockRepurchase,
-    #[serde(rename(serialize = "股票", deserialize = "17"))]
-    Stock,
+mapping! { Item,
+    TRADE_DATE => "数据日期": String,
+    PRODUCT_CODE => "证券类别": String = "deserialize_product_code",
+    LIST_NUM => "挂牌数": u64 = "try_from_str",
+    TOTAL_VALUE => "市场总值(亿元)": f64 = "try_from_str",
+    NEGO_VALUE => "流通市值(亿元)": f64 = "try_from_str",
+    TRADE_AMT => "成交金额(亿元)": f64 = "try_from_str",
+    TRADE_VOL => "成交量(亿股/亿份)": f64 = "try_from_str",
+    AVG_PE_RATE => "平均市盈率(倍)": f64 = "try_from_str",
+    TOTAL_TO_RATE => "换手率(%)": f64 = "try_from_str",
+    NEGO_TO_RATE => "流通换手率(%)": f64 = "try_from_str",
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all(deserialize = "SCREAMING_SNAKE_CASE"))]
-struct Item {
-    #[serde(rename(serialize = "数据日期"))]
-    trade_date: String,
-    #[serde(rename(serialize = "证券类别"))]
-    product_code: ProductCode,
-    #[serde(rename(serialize = "挂牌数"), deserialize_with = "try_from_str")]
-    list_num: Option<u32>,
-    #[serde(
-        rename(serialize = "市场总值(亿元)"),
-        deserialize_with = "try_from_str"
-    )]
-    total_value: Option<f64>,
-    #[serde(
-        rename(serialize = "流通市值(亿元)"),
-        deserialize_with = "try_from_str"
-    )]
-    nego_value: Option<f64>,
-    #[serde(
-        rename(serialize = "成交金额(亿元)"),
-        deserialize_with = "try_from_str"
-    )]
-    trade_amt: Option<f64>,
-    #[serde(
-        rename(serialize = "成交量(亿股/亿份)"),
-        deserialize_with = "try_from_str"
-    )]
-    trade_vol: Option<f64>,
-    #[serde(
-        rename(serialize = "平均市盈率(倍)"),
-        deserialize_with = "try_from_str"
-    )]
-    avg_pe_rate: Option<f64>,
-    #[serde(rename(serialize = "换手率(%)"), deserialize_with = "try_from_str")]
-    total_to_rate: Option<f64>,
-    #[serde(rename(serialize = "流通换手率(%)"), deserialize_with = "try_from_str")]
-    nego_to_rate: Option<f64>,
-    // NOTE: 以网页未见不录
-    // #[serde_as(as = "DisplayFromStr")]
-    // trade_num: f64,
-}
-
-pub async fn arrow(date: &str) -> anyhow::Result<RecordBatch> {
+pub async fn arrow<Extend>(date: &str) -> anyhow::Result<RecordBatch>
+where
+    Extend: DeserializeOwned + Serialize + FieldsInfo + Send,
+{
     let raw = raw(date).await?;
-    let items = serde_json::from_slice::<CommonMessage<Vec<Item>>>(&raw)?.result;
-    let fields = Vec::<FieldRef>::from_samples(
-        &items,
-        TracingOptions::default().enums_without_data_as_strings(true),
-    )?;
-    // TODO: 是否需要确保「股票」和「股票回购」数据项存在？
-    let batch = serde_arrow::to_record_batch(&fields, &items)?;
-    Ok(batch)
+    let items = serde_json::from_slice::<CommonMessage<Vec<Item<Extend>>>>(&raw)?.result;
+
+    let mut decoder =
+        ReaderBuilder::new(Arc::new(Schema::new(Item::<Extend>::fields()))).build_decoder()?;
+    decoder.serialize(&items)?;
+    Ok(decoder
+        .flush()?
+        .context(anyhow::anyhow!("no buffered data"))?)
+}
+
+pub(crate) fn deserialize_product_code<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: &str = Deserialize::deserialize(deserializer)?;
+    Ok(Some(
+        match s {
+            "01" => "主板A",
+            "02" => "主板B",
+            "03" => "科创板",
+            "11" => "股票回购",
+            "07" => "股票",
+            _ => return Err(de::Error::custom(format!("product code {s} is unknown"))),
+        }
+        .to_string(),
+    ))
+}
+
+#[derive(Builder, Debug, Clone)]
+#[cfg_attr(
+    feature = "cli",
+    derive(argh::FromArgs),
+    argh(subcommand, name = "deal_daily")
+)]
+/// 市场总貌
+pub struct Args<Extra = ()> {
+    #[builder(with = || Raw::default())]
+    #[cfg_attr(feature = "cli", argh(subcommand))]
+    raw: Option<Raw>,
+
+    #[cfg_attr(feature = "cli", argh(positional))]
+    date: String,
+
+    #[builder(skip)]
+    #[cfg_attr(
+        feature = "cli",
+        argh(option, default = "PhantomArg::default()", hidden_help)
+    )]
+    _extra: PhantomArg<Extra>,
+}
+
+use args_builder::State;
+
+#[allow(deprecated)]
+impl<F1, S: State> ArgsBuilder<F1, S> {
+    pub fn extra<F2>(self) -> ArgsBuilder<F2, S>
+where {
+        let ArgsBuilder {
+            __unsafe_private_named: unsafe_private_named,
+            ..
+        } = self;
+        ArgsBuilder {
+            __unsafe_private_phantom: PhantomData,
+            __unsafe_private_named: unsafe_private_named,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+#[cfg_attr(
+    feature = "cli",
+    derive(argh::FromArgs),
+    argh(subcommand, name = "raw")
+)]
+/// 输出原始数据
+pub struct Raw {}
+
+impl From<()> for Raw {
+    fn from(_value: ()) -> Self {
+        Self {}
+    }
+}
+
+impl<Extend> Fetch for Args<Extend>
+where
+    Extend: DeserializeOwned + Serialize + Send + FieldsInfo,
+{
+    async fn fetch(self) -> anyhow::Result<Data> {
+        Ok(match &self.raw {
+            None => self::arrow::<Extend>(&self.date).await?.into(),
+            Some(_) => self::raw(&self.date).await?.into(),
+        })
+    }
 }

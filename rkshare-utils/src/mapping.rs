@@ -12,6 +12,10 @@ macro_rules! mapping {
             $serialize_name:literal:
             // 字段类型
             $field_type:tt
+            // 解析函数
+            $(
+                = $deserialize:literal
+            )?
             // TODO: 转换函数 deserialize_with
         ),* $(,)?
     ) => {
@@ -22,6 +26,7 @@ macro_rules! mapping {
             $(
                 #[doc = $serialize_name]
                 #[serde(rename(serialize = $serialize_name))]
+                $(#[serde(deserialize_with = $deserialize)])?
                 pub $field_name: Option<$field_type>,
             )*
             #[serde(flatten)]

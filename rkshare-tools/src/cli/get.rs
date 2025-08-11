@@ -1,6 +1,7 @@
 use argh::FromArgs;
 use rkshare::{
     eastmoney::cli::Eastmoney,
+    sse::cli::Sse,
     utils::{
         data::{Data, Fetch},
         pretty::pretty_print,
@@ -19,6 +20,7 @@ pub struct Get {
 #[derive(FromArgs, Debug)]
 #[argh(subcommand)]
 pub enum Subcommand {
+    Sse(Sse),
     Eastmoney(Eastmoney),
     Xueqiu(Xueqiu),
 }
@@ -34,6 +36,7 @@ impl Get {
 impl Fetch for Get {
     async fn fetch(self) -> anyhow::Result<Data> {
         match self.subcommand {
+            Subcommand::Sse(sse) => sse.fetch().await,
             Subcommand::Eastmoney(eastmoney) => eastmoney.fetch().await,
             Subcommand::Xueqiu(xueqiu) => xueqiu.fetch().await,
         }

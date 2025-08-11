@@ -33,3 +33,9 @@ url = "2.5.4"
 
 [workspace.lints.rust]
 missing_docs = "warn"
+
+[profile.release]
+strip = "symbols"
+lto = "thin"
+codegen-units = 1
+
