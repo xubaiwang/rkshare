@@ -46,9 +46,10 @@ jobs:
       run: rm target/doc/.lock
    
     - name: Upload artifact
-      uses: actions/upload-pages-artifact@v2
+      id: deployment
+      uses: actions/upload-pages-artifact@v3
       with:
-        path: "target/docs"
+        path: target/doc/
 
   deploy:
     name: Deploy
