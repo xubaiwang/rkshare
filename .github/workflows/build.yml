@@ -11,10 +11,11 @@ env:
 
 jobs:
   build-and-test:
+
+    # run on mainstream desktop platforms
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-
     runs-on: ${{ matrix.os }}
 
     steps:
