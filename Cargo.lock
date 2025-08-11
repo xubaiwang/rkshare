@@ -1559,6 +1559,7 @@ dependencies = [
  "arrow-select",
  "pyo3",
  "pyo3-arrow",
+ "pyo3-build-config",
  "rkshare",
  "tokio",
 ]

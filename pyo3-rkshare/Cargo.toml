@@ -15,3 +15,6 @@ pyo3 = { version = "0.25.1", features = ["extension-module"] }
 pyo3-arrow = "0.10.1"
 rkshare.path = "../rkshare"
 tokio.workspace = true
+
+[build-dependencies]
+pyo3-build-config.workspace = true
