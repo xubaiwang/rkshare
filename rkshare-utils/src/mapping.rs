@@ -17,12 +17,14 @@ macro_rules! mapping {
     ) => {
         #[allow(non_snake_case)]
         #[derive(Debug, serde::Serialize, serde::Deserialize)]
-        pub struct $name {
+        pub struct $name<Flatten = ()> {
             $(
                 #[doc = $serialize_name]
                 #[serde(rename(serialize = $serialize_name))]
                 pub $field_name: $field_type,
             )*
+            #[serde(flatten)]
+            flatten: Flatten,
         }
     };
 }

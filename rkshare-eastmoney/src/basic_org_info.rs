@@ -7,7 +7,7 @@ use rkshare_utils::{
     data::{TypeHint, TypedBytes},
     mapping,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_arrow::schema::{SchemaLike, TracingOptions};
 use url::Url;
 
@@ -41,9 +41,13 @@ pub async fn raw(symbol: impl TryInto<Symbol>) -> anyhow::Result<TypedBytes> {
     Ok((bytes, TypeHint::Json).into())
 }
 
-pub async fn arrow(symbol: impl TryInto<Symbol>) -> anyhow::Result<RecordBatch> {
+pub async fn arrow<Flatten: DeserializeOwned + Serialize>(
+    symbol: impl TryInto<Symbol>,
+) -> anyhow::Result<RecordBatch> {
     let raw = raw(symbol).await?;
-    let items = serde_json::from_slice::<Message<Item>>(&raw)?.result.data;
+    let items = serde_json::from_slice::<Message<Item<Flatten>>>(&raw)?
+        .result
+        .data;
     let fields =
         Vec::<FieldRef>::from_samples(&items, TracingOptions::default().allow_null_fields(true))?;
     let batch = serde_arrow::to_record_batch(&fields, &items)?;
@@ -102,22 +106,27 @@ mapping! { Item,
 /// CLI 相关包
 #[cfg(feature = "cli")]
 pub mod cli {
+
     use anyhow::Result;
     use argh::FromArgs;
     use rkshare_utils::{
         Symbol,
+        cli::PhantomArg,
         data::{Data, Fetch},
     };
+    use serde::{Serialize, de::DeserializeOwned};
 
     #[derive(FromArgs, Debug)]
     /// 公司概况>基本资料
     #[argh(subcommand, name = "basic_org_info")]
-    pub struct Args {
+    pub struct Args<Flatten = ()> {
         #[argh(positional)]
         /// 股票代码
         symbol: Symbol,
         #[argh(subcommand)]
         raw: Option<Raw>,
+        #[argh(option, default = "PhantomArg::default()", hidden_help)]
+        _flatten: PhantomArg<Flatten>,
     }
 
     #[derive(FromArgs, Debug)]
@@ -125,10 +134,13 @@ pub mod cli {
     #[argh(subcommand, name = "raw")]
     struct Raw {}
 
-    impl Fetch for Args {
+    impl<Flatten> Fetch for Args<Flatten>
+    where
+        Flatten: DeserializeOwned + Serialize + Send,
+    {
         async fn fetch(self) -> Result<Data> {
             Ok(match &self.raw {
-                None => super::arrow(self.symbol).await?.into(),
+                None => super::arrow::<Flatten>(self.symbol).await?.into(),
                 Some(_) => super::raw(self.symbol).await?.into(),
             })
         }

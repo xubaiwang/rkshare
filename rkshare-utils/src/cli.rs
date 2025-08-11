@@ -1,6 +1,7 @@
-use std::str::FromStr;
+use std::{marker::PhantomData, str::FromStr};
 
-use argh::FromArgs;
+use argh::{FromArgValue, FromArgs};
+use serde::{Deserialize, Serialize};
 
 use crate::Symbol;
 
@@ -20,5 +21,20 @@ impl Convert {
         println!("{}", symbol.to_extended());
 
         Ok(())
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PhantomArg<Flatten>(PhantomData<Flatten>);
+
+impl<Flatten> Default for PhantomArg<Flatten> {
+    fn default() -> Self {
+        Self(PhantomData)
+    }
+}
+
+impl<Flatten> FromArgValue for PhantomArg<Flatten> {
+    fn from_arg_value(_value: &str) -> std::result::Result<Self, String> {
+        Ok(Self::default())
     }
 }

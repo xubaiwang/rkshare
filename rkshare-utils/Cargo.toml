@@ -9,8 +9,9 @@ argh = { workspace = true, optional = true }
 arrow.workspace = true
 bytes.workspace = true
 derive_more = { version = "2.0.1", features = ["display", "from"] }
+serde = { workspace = true, optional = true }
 
 [features]
-cli = ["dep:argh"]
+cli = ["dep:argh", "dep:serde"]
 default = ["cli"]
 

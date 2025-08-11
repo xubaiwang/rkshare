@@ -1759,6 +1759,7 @@ dependencies = [
  "arrow",
  "bytes",
  "derive_more",
+ "serde",
 ]
 
 [[package]]
