@@ -1,7 +1,5 @@
 use reqwest::Client;
 
-pub mod detail;
-
 pub(crate) fn configured_client() -> anyhow::Result<Client> {
     let client = Client::builder()
         .user_agent(concat!(
@@ -13,3 +11,17 @@ pub(crate) fn configured_client() -> anyhow::Result<Client> {
         .build()?;
     Ok(client)
 }
+
+#[cfg(feature = "cli")]
+pub mod cli;
+
+macro_rules! gen_mod_builder {
+    ($name:ident) => {
+        pub mod $name;
+        pub fn $name() -> $name::ArgsBuilder {
+            $name::Args::builder()
+        }
+    };
+}
+
+gen_mod_builder!(detail);

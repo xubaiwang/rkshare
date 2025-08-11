@@ -7,8 +7,7 @@ use arrow::{array::RecordBatch, datatypes::Schema};
 use arrow_json::ReaderBuilder;
 use bon::Builder;
 use rkshare_utils::{
-    FieldsInfo, Symbol,
-    cli::PhantomArg,
+    FieldsInfo, PhantomArg, Symbol,
     data::{Data, Fetch, TypeHint, TypedBytes},
     mapping,
 };

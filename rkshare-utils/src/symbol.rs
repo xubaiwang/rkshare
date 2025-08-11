@@ -86,6 +86,11 @@ impl Symbol {
     pub fn as_raw(&self) -> &str {
         &self.raw
     }
+
+    /// 前缀形式。
+    pub fn to_prefixed(&self) -> String {
+        format!("{}{}", self.extension, self.raw)
+    }
 }
 
 impl FromStr for Symbol {

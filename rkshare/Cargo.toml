@@ -17,6 +17,6 @@ serde.workspace = true
 tokio.workspace = true
 
 [features]
-cli = ["rkshare-eastmoney/cli", "rkshare-utils/cli"]
+cli = ["rkshare-eastmoney/cli", "rkshare-utils/cli", "rkshare-xueqiu/cli"]
 pretty = ["rkshare-utils/pretty"]
 

@@ -1,17 +1,28 @@
-use arrow::{array::RecordBatch, datatypes::FieldRef};
+use std::{marker::PhantomData, sync::Arc};
+
+use anyhow::{Context, Result, anyhow};
+use arrow::{array::RecordBatch, datatypes::Schema, json::ReaderBuilder};
+use bon::Builder;
 use reqwest::header::HeaderMap;
-use serde::{Deserialize, Serialize};
-use serde_arrow::schema::{SchemaLike, TracingOptions};
+use rkshare_utils::{
+    FieldsInfo, PhantomArg, Symbol,
+    data::{Data, Fetch, TypeHint, TypedBytes},
+    mapping,
+};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use url::Url;
 
 use crate::configured_client;
 
-const XQ_A_TOKEN: &str = "78591293b0e2907176f7f507563a6b9ac189af0b";
+const XQ_A_TOKEN: &str = "b813a12eb0682b072cce896e4e6c985ecd8efdbd";
 
-pub async fn raw(symbol: &str) -> anyhow::Result<bytes::Bytes> {
+pub async fn raw(symbol: impl TryInto<Symbol>) -> Result<TypedBytes> {
+    let symbol: Symbol = symbol
+        .try_into()
+        .map_err(|_| anyhow!("cannot convert to symbol"))?;
     let url = Url::parse_with_params(
         "https://stock.xueqiu.com/v5/stock/f10/cn/company.json",
-        [("symbol", symbol)],
+        [("symbol", symbol.to_prefixed())],
     )?;
 
     let headers = {
@@ -30,84 +41,127 @@ pub async fn raw(symbol: &str) -> anyhow::Result<bytes::Bytes> {
         .bytes()
         .await?;
 
-    Ok(raw)
+    Ok((raw, TypeHint::Json).into())
 }
 
 #[derive(Deserialize)]
 struct Message {
-    data: Data,
+    data: MessageData,
 }
 
 #[derive(Deserialize)]
-struct Data {
+struct MessageData {
     company: Company,
 }
 
-#[derive(Deserialize, Serialize)]
-struct Company {
-    #[serde(rename(serialize = "公司名称"))]
-    org_name_cn: String,
-    #[serde(rename(serialize = "曾用名"))]
-    pre_name_cn: String,
-    #[serde(rename(serialize = "实际控制人"))]
-    actual_controller: String,
-    #[serde(rename(serialize = "所有制性质名称"))]
-    classi_name: String,
-    #[serde(rename(serialize = "主营业务"))]
-    main_operation_business: String,
-    #[serde(rename(serialize = "公司简介"))]
-    org_cn_introduction: String,
-    #[serde(rename(serialize = "董事长"))]
-    chairman: String,
-    #[serde(rename(serialize = "法人代表"))]
-    legal_representative: String,
-    #[serde(rename(serialize = "总经理"))]
-    general_manager: String,
-    #[serde(rename(serialize = "董秘"))]
-    secretary: String,
-    #[serde(rename(serialize = "成立日期"))]
-    established_date: u64,
-    // NOTE: 似乎不同 currency 会不同
-    #[serde(rename(serialize = "注册资本"))]
-    reg_asset: f64,
-    #[serde(rename(serialize = "注册货币"))]
-    currency: String,
-    #[serde(rename(serialize = "员工人数"))]
-    staff_num: u64,
-    #[serde(rename(serialize = "管理层人数"))]
-    executives_nums: u64,
-    #[serde(rename(serialize = "上市日期"))]
-    listed_date: u64,
-    #[serde(rename(serialize = "发行量"))]
-    actual_issue_vol: f64,
-    #[serde(rename(serialize = "发行价格"))]
-    issue_price: f64,
-    #[serde(rename(serialize = "募集资金"))]
-    actual_rc_net_amt: f64,
-    #[serde(rename(serialize = "发行市盈率"))]
-    pe_after_issuing: f64,
-    #[serde(rename(serialize = "网上中签率"))]
-    online_success_rate_of_issue: f64,
-    #[serde(rename(serialize = "联系电话"))]
-    telephone: String,
-    #[serde(rename(serialize = "邮政编码"))]
-    postcode: String,
-    #[serde(rename(serialize = "传真"))]
-    fax: String,
-    #[serde(rename(serialize = "电子邮箱"))]
-    email: String,
-    #[serde(rename(serialize = "公司网址"))]
-    org_website: String,
-    #[serde(rename(serialize = "注册地址"))]
-    reg_address_cn: String,
-    #[serde(rename(serialize = "办公地址"))]
-    office_address_cn: String,
+mapping! { Company,
+    org_name_cn => "公司名称": String,
+    pre_name_cn => "曾用名": String,
+    actual_controller =>"实际控制人": String,
+    classi_name => "所有制性质名称": String,
+    main_operation_business => "主营业务": String,
+    org_cn_introduction => "公司简介": String,
+    chairman => "董事长": String,
+    legal_representative => "法人代表": String,
+    general_manager => "总经理": String,
+    secretary => "董秘": String,
+    established_date => "成立日期": u64,
+    reg_asset => "注册资本": f64,
+    currency => "注册货币": String,
+    staff_num => "员工人数": u64,
+    executives_nums => "管理层人数": u64,
+    listed_date => "上市日期": u64,
+    actual_issue_vol => "发行量": f64,
+    issue_price => "发行价格": f64,
+    actual_rc_net_amt => "募集资金": f64,
+    pe_after_issuing => "发行市盈率": f64,
+    online_success_rate_of_issue => "网上中签率": f64,
+    telephone => "联系电话": String,
+    postcode => "邮政编码": String,
+    fax => "传真": String,
+    email => "电子邮箱": String,
+    org_website => "公司网址": String,
+    reg_address_cn => "注册地址": String,
+    office_address_cn => "办公地址": String,
 }
 
-pub async fn arrow(symbol: &str) -> anyhow::Result<RecordBatch> {
+pub async fn arrow<Extend>(symbol: impl TryInto<Symbol>) -> Result<RecordBatch>
+where
+    Extend: DeserializeOwned + Serialize + FieldsInfo + Send,
+{
     let raw = raw(symbol).await?;
     let item = serde_json::from_slice::<Message>(&raw)?.data.company;
-    let fiedls = Vec::<FieldRef>::from_samples(&[&item], TracingOptions::default())?;
-    let batch = serde_arrow::to_record_batch(&fiedls, &[item])?;
-    Ok(batch)
+    let mut decoder =
+        ReaderBuilder::new(Arc::new(Schema::new(Company::<Extend>::fields()))).build_decoder()?;
+    decoder.serialize(&[item])?;
+
+    Ok(decoder.flush()?.context(anyhow!("no buffered data"))?)
+}
+
+#[derive(Builder, Debug, Clone)]
+#[cfg_attr(
+    feature = "cli",
+    derive(argh::FromArgs),
+    argh(subcommand, name = "detail")
+)]
+/// 公司简介
+pub struct Args<Extra = ()> {
+    #[builder(skip)]
+    #[cfg_attr(
+        feature = "cli",
+        argh(option, default = "PhantomArg::default()", hidden_help)
+    )]
+    _extra: PhantomArg<Extra>,
+
+    #[builder(with = || Raw::default())]
+    #[cfg_attr(feature = "cli", argh(subcommand))]
+    raw: Option<Raw>,
+
+    #[cfg_attr(feature = "cli", argh(positional))]
+    /// 股票代码
+    symbol: Symbol,
+}
+
+use args_builder::State;
+
+#[allow(deprecated)]
+impl<F1, S: State> ArgsBuilder<F1, S> {
+    pub fn extra<F2>(self) -> ArgsBuilder<F2, S>
+where {
+        let ArgsBuilder {
+            __unsafe_private_named: unsafe_private_named,
+            ..
+        } = self;
+        ArgsBuilder {
+            __unsafe_private_phantom: PhantomData,
+            __unsafe_private_named: unsafe_private_named,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+#[cfg_attr(
+    feature = "cli",
+    derive(argh::FromArgs),
+    argh(subcommand, name = "raw")
+)]
+/// 输出原始数据
+pub struct Raw {}
+
+impl From<()> for Raw {
+    fn from(_value: ()) -> Self {
+        Self {}
+    }
+}
+
+impl<Extend> Fetch for Args<Extend>
+where
+    Extend: DeserializeOwned + Serialize + Send + FieldsInfo,
+{
+    async fn fetch(self) -> Result<Data> {
+        Ok(match &self.raw {
+            None => self::arrow::<Extend>(self.symbol).await?.into(),
+            Some(_) => self::raw(self.symbol).await?.into(),
+        })
+    }
 }

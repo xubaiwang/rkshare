@@ -5,6 +5,7 @@ use rkshare::{
         data::{Data, Fetch},
         pretty::pretty_print,
     },
+    xueqiu::cli::Xueqiu,
 };
 
 #[derive(FromArgs, Debug)]
@@ -19,7 +20,7 @@ pub struct Get {
 #[argh(subcommand)]
 pub enum Subcommand {
     Eastmoney(Eastmoney),
-    // Xueqiu(GetXueqiu),
+    Xueqiu(Xueqiu),
 }
 
 impl Get {
@@ -31,9 +32,10 @@ impl Get {
 }
 
 impl Fetch for Get {
-    fn fetch(self) -> impl Future<Output = anyhow::Result<Data>> {
+    async fn fetch(self) -> anyhow::Result<Data> {
         match self.subcommand {
-            Subcommand::Eastmoney(eastmoney) => eastmoney.fetch(),
+            Subcommand::Eastmoney(eastmoney) => eastmoney.fetch().await,
+            Subcommand::Xueqiu(xueqiu) => xueqiu.fetch().await,
         }
     }
 }
