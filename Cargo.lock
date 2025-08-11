@@ -1779,6 +1779,7 @@ dependencies = [
 name = "rkshare"
 version = "0.1.0"
 dependencies = [
+ "arrow",
  "rkshare-eastmoney",
  "rkshare-sse",
  "rkshare-szse",
@@ -1799,13 +1800,13 @@ dependencies = [
  "anyhow",
  "argh",
  "arrow",
+ "arrow-json",
  "bon",
  "bytes",
  "crabtime",
  "reqwest",
  "rkshare-utils",
  "serde",
- "serde_arrow",
  "serde_json",
  "url",
 ]

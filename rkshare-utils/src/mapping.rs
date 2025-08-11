@@ -11,20 +11,58 @@ macro_rules! mapping {
             // 显示名称（保持与网页一致）
             $serialize_name:literal:
             // 字段类型
-            $field_type:ty
+            $field_type:tt
             // TODO: 转换函数 deserialize_with
         ),* $(,)?
     ) => {
+
         #[allow(non_snake_case)]
         #[derive(Debug, serde::Serialize, serde::Deserialize)]
-        pub struct $name<Flatten = ()> {
+        pub struct $name<Extend = ()> {
             $(
                 #[doc = $serialize_name]
                 #[serde(rename(serialize = $serialize_name))]
-                pub $field_name: $field_type,
+                pub $field_name: Option<$field_type>,
             )*
             #[serde(flatten)]
-            flatten: Flatten,
+            extend: Extend,
         }
+
+        impl<Extend> rkshare_utils::FieldsInfo for $name<Extend>
+        where
+            Extend: rkshare_utils::FieldsInfo
+        {
+            fn fields() -> Vec<arrow::datatypes::Field> {
+                let mut fields = vec![
+                    $(
+                        arrow::datatypes::Field::new(
+                            $serialize_name,
+                            $crate::to_arrow_datatype!($field_type),
+                            true
+                        ),
+                    )*
+                ];
+                let extends_fields = Extend::fields();
+                fields.extend(extends_fields);
+                fields
+            }
+        }
+    };
+}
+
+/// 将 Rust 类型转化为 Arrow 数据类型。
+#[macro_export]
+macro_rules! to_arrow_datatype {
+    (String) => {
+        arrow::datatypes::DataType::Utf8
+    };
+    (f64) => {
+        arrow::datatypes::DataType::Float64
+    };
+    (u64) => {
+        arrow::datatypes::DataType::UInt64
+    };
+    (i64) => {
+        arrow::datatypes::DataType::Int64
     };
 }

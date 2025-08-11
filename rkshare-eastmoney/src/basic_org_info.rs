@@ -1,18 +1,18 @@
 //! 公司概况 > 基本资料
 
-use std::marker::PhantomData;
+use std::{marker::PhantomData, sync::Arc};
 
-use anyhow::{Result, anyhow};
-use arrow::{array::RecordBatch, datatypes::FieldRef};
+use anyhow::{Context, Result, anyhow};
+use arrow::{array::RecordBatch, datatypes::Schema};
+use arrow_json::ReaderBuilder;
 use bon::Builder;
 use rkshare_utils::{
-    Symbol,
+    FieldsInfo, Symbol,
     cli::PhantomArg,
     data::{Data, Fetch, TypeHint, TypedBytes},
     mapping,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use serde_arrow::schema::{SchemaLike, TracingOptions};
 use url::Url;
 
 /// Example: 301232.SZ
@@ -45,17 +45,18 @@ pub async fn raw(symbol: impl TryInto<Symbol>) -> Result<TypedBytes> {
     Ok((bytes, TypeHint::Json).into())
 }
 
-pub async fn arrow<Flatten: DeserializeOwned + Serialize>(
-    symbol: impl TryInto<Symbol>,
-) -> Result<RecordBatch> {
+pub async fn arrow<Extend>(symbol: impl TryInto<Symbol>) -> Result<RecordBatch>
+where
+    Extend: DeserializeOwned + Serialize + FieldsInfo,
+{
     let raw = raw(symbol).await?;
-    let items = serde_json::from_slice::<Message<Item<Flatten>>>(&raw)?
+    let items = serde_json::from_slice::<Message<Item<Extend>>>(&raw)?
         .result
         .data;
-    let fields =
-        Vec::<FieldRef>::from_samples(&items, TracingOptions::default().allow_null_fields(true))?;
-    let batch = serde_arrow::to_record_batch(&fields, &items)?;
-    Ok(batch)
+    let mut decoder =
+        ReaderBuilder::new(Arc::new(Schema::new(Item::<Extend>::fields()))).build_decoder()?;
+    decoder.serialize(&items)?;
+    Ok(decoder.flush()?.context(anyhow!("no buffered data"))?)
 }
 
 #[derive(Debug, Deserialize)]
@@ -71,14 +72,14 @@ struct MessageResult<T> {
 mapping! { Item,
     ORG_NAME => "公司名称": String,
     ORG_NAME_EN => "英文名称": String,
-    STR_CODEA => "A股代码": Option<String>,
-    STR_NAMEA => "A股简称": Option<String>,
-    EXPAND_NAME_ABBR => "A股扩位简称": Option<String>,
-    FORMERNAME => "曾用名": Option<String>,
-    STR_CODEB => "B股代码": Option<String>,
-    STR_NAMEB => "B股简称": Option<String>,
-    STR_CODEH => "H股代码": Option<String>,
-    STR_NAMEH => "H股简称": Option<String>,
+    STR_CODEA => "A股代码": String,
+    STR_NAMEA => "A股简称": String,
+    EXPAND_NAME_ABBR => "A股扩位简称": String,
+    FORMERNAME => "曾用名": String,
+    STR_CODEB => "B股代码": String,
+    STR_NAMEB => "B股简称": String,
+    STR_CODEH => "H股代码": String,
+    STR_NAMEH => "H股简称": String,
     SECURITY_TYPE => "证券类别": String,
     EM2016 => "所属东财行业": String,
     TRADE_MARKET => "上市交易所": String,
@@ -163,13 +164,13 @@ impl From<()> for Raw {
     }
 }
 
-impl<Flatten> Fetch for Args<Flatten>
+impl<Extend> Fetch for Args<Extend>
 where
-    Flatten: DeserializeOwned + Serialize + Send,
+    Extend: DeserializeOwned + Serialize + Send + FieldsInfo,
 {
     async fn fetch(self) -> Result<Data> {
         Ok(match &self.raw {
-            None => self::arrow::<Flatten>(self.symbol).await?.into(),
+            None => self::arrow::<Extend>(self.symbol).await?.into(),
             Some(_) => self::raw(self.symbol).await?.into(),
         })
     }

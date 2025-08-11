@@ -7,13 +7,13 @@ edition = "2024"
 anyhow.workspace = true
 argh = { workspace = true, optional = true }
 arrow.workspace = true
+arrow-json.workspace = true
 bon.workspace = true
 bytes.workspace = true
 crabtime.workspace = true
 reqwest.workspace = true
 rkshare-utils.path = "../rkshare-utils"
 serde.workspace = true
-serde_arrow.workspace = true
 serde_json.workspace = true
 url.workspace = true
 

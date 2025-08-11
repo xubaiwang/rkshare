@@ -11,6 +11,7 @@ rkshare-utils.path = "../rkshare-utils"
 rkshare-xueqiu.path = "../rkshare-xueqiu"
 
 [dev-dependencies]
+arrow.workspace = true
 rkshare-utils = { features = ["pretty"], path = "../rkshare-utils" }
 serde.workspace = true
 tokio.workspace = true

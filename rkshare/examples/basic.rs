@@ -2,7 +2,6 @@ use rkshare::{
     eastmoney::basic_org_info,
     utils::{Symbol, data::Fetch, pretty::pretty_print},
 };
-use serde::{Deserialize, Serialize};
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
@@ -31,9 +30,6 @@ async fn main() {
     pretty_print(batch).unwrap();
 }
 
-#[allow(non_snake_case)]
-#[derive(Serialize, Deserialize)]
-struct ExtraFields {
-    #[serde(rename(serialize = "组织代码"))]
-    ORG_CODE: String,
+rkshare::utils::mapping! { ExtraFields,
+    ORG_CODE => "组织代码": String
 }
