@@ -24,7 +24,7 @@ impl Convert {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PhantomArg<Flatten>(PhantomData<Flatten>);
 
 impl<Flatten> Default for PhantomArg<Flatten> {

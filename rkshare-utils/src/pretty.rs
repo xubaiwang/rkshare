@@ -1,10 +1,14 @@
 //! 该模块用于美化数据内容输出。
 
 use arrow::util::pretty::pretty_format_batches;
-use rkshare::utils::data::{Data, TypeHint};
 use serde_json::Value;
 
-pub fn pretty_print(data: &Data) -> anyhow::Result<()> {
+use crate::data::{Data, TypeHint};
+
+/// 美化数据输出。
+pub fn pretty_print(data: impl Into<Data>) -> anyhow::Result<()> {
+    let data = data.into();
+
     match data {
         Data::Arrow(record_batch) => {
             // TODO: 当期使用 arrow 自带美化，对长行支持不好，

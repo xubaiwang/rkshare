@@ -1,10 +1,11 @@
 use argh::FromArgs;
 use rkshare::{
     eastmoney::cli::Eastmoney,
-    utils::data::{Data, Fetch},
+    utils::{
+        data::{Data, Fetch},
+        pretty::pretty_print,
+    },
 };
-
-use crate::pretty::pretty_print;
 
 #[derive(FromArgs, Debug)]
 /// 请求数据
@@ -24,7 +25,7 @@ pub enum Subcommand {
 impl Get {
     pub fn action(self) -> anyhow::Result<()> {
         let data = rt()?.block_on(self.fetch())?;
-        pretty_print(&data)?;
+        pretty_print(data)?;
         Ok(())
     }
 }

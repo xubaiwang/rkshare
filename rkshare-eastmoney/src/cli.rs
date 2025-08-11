@@ -13,7 +13,7 @@ pub struct Eastmoney {
 #[derive(FromArgs, Debug)]
 #[argh(subcommand)]
 pub enum Subcommand {
-    BasicOrgInfo(crate::basic_org_info::cli::Args),
+    BasicOrgInfo(crate::basic_org_info::Args),
 }
 
 impl Fetch for Eastmoney {

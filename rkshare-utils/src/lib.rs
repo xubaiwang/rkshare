@@ -12,3 +12,6 @@ pub mod symbol;
 pub mod cli;
 
 pub mod data;
+
+#[cfg(feature = "pretty")]
+pub mod pretty;

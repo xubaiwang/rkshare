@@ -1,13 +1,19 @@
 //! 东方财富接口。
 
-macro_rules! mod_reexport {
-    ($name:ident) => {
-        pub mod $name;
-        pub use $name::arrow as $name;
-    };
+#[crabtime::function]
+fn gen_mod_builder(pattern!($name:ident, $arg:ident): _) {
+    let name = stringify!($name);
+    let arg = stringify!($arg);
+
+    crabtime::output! {
+        pub mod {{name}};
+        pub fn {{name}}() -> {{name}}::{{arg}}Builder {
+            {{name}}::{{arg}}::builder()
+        }
+    }
 }
 
-mod_reexport!(basic_org_info);
+gen_mod_builder!(basic_org_info, Args);
 
 // TODO: 发行相关 (RPT_PCF10_ORG_ISSUEINFO)
 // TODO: 参股控股 (RPT_F10_PUBLIC_OP_HOLDINGORG)

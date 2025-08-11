@@ -1,10 +1,14 @@
 //! 公司概况 > 基本资料
 
-use anyhow::anyhow;
+use std::marker::PhantomData;
+
+use anyhow::{Result, anyhow};
 use arrow::{array::RecordBatch, datatypes::FieldRef};
+use bon::Builder;
 use rkshare_utils::{
     Symbol,
-    data::{TypeHint, TypedBytes},
+    cli::PhantomArg,
+    data::{Data, Fetch, TypeHint, TypedBytes},
     mapping,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
@@ -12,7 +16,7 @@ use serde_arrow::schema::{SchemaLike, TracingOptions};
 use url::Url;
 
 /// Example: 301232.SZ
-pub async fn raw(symbol: impl TryInto<Symbol>) -> anyhow::Result<TypedBytes> {
+pub async fn raw(symbol: impl TryInto<Symbol>) -> Result<TypedBytes> {
     let symbol: Symbol = symbol
         .try_into()
         // TODO: correct error type
@@ -43,7 +47,7 @@ pub async fn raw(symbol: impl TryInto<Symbol>) -> anyhow::Result<TypedBytes> {
 
 pub async fn arrow<Flatten: DeserializeOwned + Serialize>(
     symbol: impl TryInto<Symbol>,
-) -> anyhow::Result<RecordBatch> {
+) -> Result<RecordBatch> {
     let raw = raw(symbol).await?;
     let items = serde_json::from_slice::<Message<Item<Flatten>>>(&raw)?
         .result
@@ -103,46 +107,70 @@ mapping! { Item,
     BUSINESS_SCOPE => "经营范围": String,
 }
 
-/// CLI 相关包
-#[cfg(feature = "cli")]
-pub mod cli {
+#[derive(Builder, Debug, Clone)]
+#[cfg_attr(
+    feature = "cli",
+    derive(argh::FromArgs),
+    argh(subcommand, name = "basic_org_info")
+)]
+/// 公司概况>基本资料
+pub struct Args<Extra = ()> {
+    #[cfg_attr(feature = "cli", argh(positional))]
+    /// 股票代码
+    symbol: Symbol,
 
-    use anyhow::Result;
-    use argh::FromArgs;
-    use rkshare_utils::{
-        Symbol,
-        cli::PhantomArg,
-        data::{Data, Fetch},
-    };
-    use serde::{Serialize, de::DeserializeOwned};
+    #[builder(with = || Raw::default())]
+    #[cfg_attr(feature = "cli", argh(subcommand))]
+    raw: Option<Raw>,
 
-    #[derive(FromArgs, Debug)]
-    /// 公司概况>基本资料
-    #[argh(subcommand, name = "basic_org_info")]
-    pub struct Args<Flatten = ()> {
-        #[argh(positional)]
-        /// 股票代码
-        symbol: Symbol,
-        #[argh(subcommand)]
-        raw: Option<Raw>,
-        #[argh(option, default = "PhantomArg::default()", hidden_help)]
-        _flatten: PhantomArg<Flatten>,
-    }
+    #[builder(skip)]
+    #[cfg_attr(
+        feature = "cli",
+        argh(option, default = "PhantomArg::default()", hidden_help)
+    )]
+    _extra: PhantomArg<Extra>,
+}
 
-    #[derive(FromArgs, Debug)]
-    /// 输出原始数据
-    #[argh(subcommand, name = "raw")]
-    struct Raw {}
+use args_builder::State;
 
-    impl<Flatten> Fetch for Args<Flatten>
-    where
-        Flatten: DeserializeOwned + Serialize + Send,
-    {
-        async fn fetch(self) -> Result<Data> {
-            Ok(match &self.raw {
-                None => super::arrow::<Flatten>(self.symbol).await?.into(),
-                Some(_) => super::raw(self.symbol).await?.into(),
-            })
+#[allow(deprecated)]
+impl<F1, S: State> ArgsBuilder<F1, S> {
+    pub fn extra<F2>(self) -> ArgsBuilder<F2, S>
+where {
+        let ArgsBuilder {
+            __unsafe_private_named: unsafe_private_named,
+            ..
+        } = self;
+        ArgsBuilder {
+            __unsafe_private_phantom: PhantomData,
+            __unsafe_private_named: unsafe_private_named,
         }
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+#[cfg_attr(
+    feature = "cli",
+    derive(argh::FromArgs),
+    argh(subcommand, name = "raw")
+)]
+/// 输出原始数据
+pub struct Raw {}
+
+impl From<()> for Raw {
+    fn from(_value: ()) -> Self {
+        Self {}
+    }
+}
+
+impl<Flatten> Fetch for Args<Flatten>
+where
+    Flatten: DeserializeOwned + Serialize + Send,
+{
+    async fn fetch(self) -> Result<Data> {
+        Ok(match &self.raw {
+            None => self::arrow::<Flatten>(self.symbol).await?.into(),
+            Some(_) => self::raw(self.symbol).await?.into(),
+        })
     }
 }

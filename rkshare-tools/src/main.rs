@@ -3,7 +3,6 @@
 use cli::Args;
 
 mod cli;
-mod pretty;
 
 fn main() -> anyhow::Result<()> {
     let args: Args = argh::from_env();
