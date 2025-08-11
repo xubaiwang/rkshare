@@ -1,5 +1,7 @@
 # rkshare
 
+[API Docs](https://xubaiwang.github.io/rkshare/)
+
 Port [akshare](https://github.com/akfamily/akshare) to Rust for performance and portability.
 
 > [!NOTE]
