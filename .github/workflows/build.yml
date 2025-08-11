@@ -24,9 +24,6 @@ jobs:
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
 
-    - name: Configure cache
-      uses: Swatinem/rust-cache@v2
-
     - name: Set up Python 3.11
       id: setup-python
       uses: actions/setup-python@v4
