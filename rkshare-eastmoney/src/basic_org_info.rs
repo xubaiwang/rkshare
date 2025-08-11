@@ -34,7 +34,6 @@ pub async fn raw(symbol: impl TryInto<Symbol>) -> anyhow::Result<TypedBytes> {
             ("sortColumns", ""),
             ("source", "HSF10"),
             ("client", "PC"),
-            ("v", "08415533882391942"),
         ],
     )?;
 
