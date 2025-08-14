@@ -8,11 +8,7 @@ mod utils;
 
 /// RkShare 开源财经数据接口库——命令行工具。
 #[derive(clap::Parser, Debug)]
-#[command(
-    arg_required_else_help(true),
-    // disable_help_flag(true),
-    disable_help_subcommand(true)
-)]
+#[command(arg_required_else_help(true), disable_help_subcommand(true))]
 pub struct Cli {
     #[command(subcommand)]
     commands: Commands,

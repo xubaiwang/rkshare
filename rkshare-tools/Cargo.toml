@@ -17,4 +17,3 @@ rkshare = { features = ["cli", "pretty"], path = "../rkshare" }
 serde.workspace = true
 serde_json.workspace = true
 tokio.workspace = true
-

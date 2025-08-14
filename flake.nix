@@ -40,6 +40,9 @@
             nativeBuildInputs = [
               pkg-config
             ];
+            shellHook = ''
+              alias rkshare="cargo run --quiet --"
+            '';
           };
       }
     );
