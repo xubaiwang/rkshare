@@ -28,11 +28,14 @@ pub struct Get {
 
 #[derive(clap::Subcommand, Debug)]
 enum Command {
-    #[command(subcommand)]
+    /// 上海证券交易所
+    #[command(subcommand, visible_aliases = &["sh", "上海证券交易所", "上交所"])]
     Sse(Sse),
-    #[command(subcommand)]
+    /// 东方财富
+    #[command(subcommand, visible_aliases = &["em", "东方财富", "东财"])]
     Eastmoney(Eastmoney),
-    #[command(subcommand)]
+    /// 雪球
+    #[command(subcommand, visible_aliases = &["xq", "雪球"])]
     Xueqiu(Xueqiu),
 }
 
