@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 anyhow.workspace = true
-argh = { workspace = true, optional = true }
+clap = { workspace = true, optional = true }
 arrow = { workspace = true, features = ["prettyprint"] }
 bytes.workspace = true
 derive_more = { version = "2.0.1", features = ["display", "from"] }
@@ -13,7 +13,7 @@ serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 
 [features]
-cli = ["dep:argh", "dep:serde"]
+cli = ["dep:clap", "dep:serde"]
 default = ["cli"]
 pretty = ["dep:serde_json"]
 

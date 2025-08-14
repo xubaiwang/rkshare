@@ -1,11 +1,6 @@
-#![warn(missing_docs)]
-
 //! 本模块提供 rkshare 通用实用功能
 
-use std::marker::PhantomData;
-
 use arrow::datatypes::Field;
-use serde::{Deserialize, Serialize};
 pub use symbol::*;
 
 mod mapping;
@@ -32,19 +27,18 @@ impl FieldsInfo for () {
     }
 }
 
-/// 标记参数。
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PhantomArg<Flatten>(PhantomData<Flatten>);
+#[cfg(feature = "cli")]
+#[derive(clap::Subcommand, Clone, Debug)]
+pub enum Raw<T: clap::Args = EmptyArgs> {
+    Raw(T),
+}
 
-impl<Flatten> Default for PhantomArg<Flatten> {
+impl<T: Default + clap::Args> Default for Raw<T> {
     fn default() -> Self {
-        Self(PhantomData)
+        Self::Raw(T::default())
     }
 }
 
 #[cfg(feature = "cli")]
-impl<Flatten> argh::FromArgValue for PhantomArg<Flatten> {
-    fn from_arg_value(_value: &str) -> std::result::Result<Self, String> {
-        Ok(Self::default())
-    }
-}
+#[derive(clap::Args, Default, Clone, Debug)]
+pub struct EmptyArgs;

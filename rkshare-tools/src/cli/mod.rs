@@ -1,5 +1,4 @@
 use anyhow::Result;
-use argh::FromArgs;
 
 use self::{get::Get, serve::Serve, utils::Utils};
 
@@ -7,27 +6,33 @@ mod get;
 mod serve;
 mod utils;
 
-#[derive(FromArgs, Debug)]
-/// 开源财经数据接口库 RKShare 命令行工具。
-pub struct Args {
-    #[argh(subcommand)]
-    subcommand: Subcommand,
+/// RkShare 开源财经数据接口库——命令行工具。
+#[derive(clap::Parser, Debug)]
+#[command(
+    arg_required_else_help(true),
+    // disable_help_flag(true),
+    disable_help_subcommand(true)
+)]
+pub struct Cli {
+    #[command(subcommand)]
+    commands: Commands,
 }
 
-#[derive(FromArgs, Debug)]
-#[argh(subcommand)]
-enum Subcommand {
+#[derive(clap::Subcommand, Debug)]
+enum Commands {
+    #[command(subcommand)]
     Get(Get),
     Serve(Serve),
+    #[command(subcommand)]
     Utils(Utils),
 }
 
-impl Args {
+impl Cli {
     pub fn action(self) -> Result<()> {
-        match self.subcommand {
-            Subcommand::Get(get) => get.action()?,
-            Subcommand::Serve(serve) => serve.action()?,
-            Subcommand::Utils(utils) => utils.action()?,
+        match self.commands {
+            Commands::Get(get) => get.action()?,
+            Commands::Serve(serve) => serve.action()?,
+            Commands::Utils(utils) => utils.action()?,
         }
         Ok(())
     }

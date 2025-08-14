@@ -7,7 +7,7 @@ use arrow::{array::RecordBatch, datatypes::Schema};
 use arrow_json::ReaderBuilder;
 use bon::Builder;
 use rkshare_utils::{
-    FieldsInfo, PhantomArg, Symbol,
+    FieldsInfo, Raw, Symbol,
     data::{Data, Fetch, TypeHint, TypedBytes},
     mapping,
 };
@@ -108,27 +108,19 @@ mapping! { Item,
 }
 
 #[derive(Builder, Debug, Clone)]
-#[cfg_attr(
-    feature = "cli",
-    derive(argh::FromArgs),
-    argh(subcommand, name = "basic_org_info")
-)]
+#[cfg_attr(feature = "cli", derive(clap::Args))]
 /// 公司概况>基本资料
 pub struct Args<Extra = ()> {
-    #[cfg_attr(feature = "cli", argh(positional))]
     /// 股票代码
     symbol: Symbol,
 
-    #[builder(with = || Raw::default())]
-    #[cfg_attr(feature = "cli", argh(subcommand))]
+    #[cfg_attr(feature = "cli", command(subcommand))]
+    #[builder(with = || Default::default())]
     raw: Option<Raw>,
 
     #[builder(skip)]
-    #[cfg_attr(
-        feature = "cli",
-        argh(option, default = "PhantomArg::default()", hidden_help)
-    )]
-    _extra: PhantomArg<Extra>,
+    #[cfg_attr(feature = "cli", arg(skip))]
+    _extra: PhantomData<Extra>,
 }
 
 use args_builder::State;
@@ -145,21 +137,6 @@ where {
             __unsafe_private_phantom: PhantomData,
             __unsafe_private_named: unsafe_private_named,
         }
-    }
-}
-
-#[derive(Debug, Clone, Default)]
-#[cfg_attr(
-    feature = "cli",
-    derive(argh::FromArgs),
-    argh(subcommand, name = "raw")
-)]
-/// 输出原始数据
-pub struct Raw {}
-
-impl From<()> for Raw {
-    fn from(_value: ()) -> Self {
-        Self {}
     }
 }
 

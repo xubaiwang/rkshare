@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-argh = { workspace = true, optional = true }
+clap = { workspace = true, optional = true }
 anyhow.workspace = true
 arrow.workspace = true
 bon.workspace = true
@@ -17,4 +17,4 @@ url.workspace = true
 rkshare-utils.path = "../rkshare-utils"
 
 [features]
-cli = ["dep:argh"]
+cli = ["dep:clap"]

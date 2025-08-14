@@ -4,7 +4,7 @@ use anyhow::Context;
 use arrow::{array::RecordBatch, datatypes::Schema, json::ReaderBuilder};
 use bon::Builder;
 use rkshare_utils::{
-    FieldsInfo, PhantomArg,
+    FieldsInfo, Raw,
     data::{Data, Fetch, TypeHint, TypedBytes},
     mapping,
 };
@@ -55,23 +55,15 @@ where
 }
 
 #[derive(Builder, Debug, Clone)]
-#[cfg_attr(
-    feature = "cli",
-    derive(argh::FromArgs),
-    argh(subcommand, name = "summary")
-)]
+#[cfg_attr(feature = "cli", derive(clap::Args))]
 /// 市场总貌
 pub struct Args<Extra = ()> {
-    #[builder(with = || Raw::default())]
-    #[cfg_attr(feature = "cli", argh(subcommand))]
+    #[cfg_attr(feature = "cli", command(subcommand))]
     raw: Option<Raw>,
 
     #[builder(skip)]
-    #[cfg_attr(
-        feature = "cli",
-        argh(option, default = "PhantomArg::default()", hidden_help)
-    )]
-    _extra: PhantomArg<Extra>,
+    #[cfg_attr(feature = "cli", arg(skip))]
+    _extra: PhantomData<Extra>,
 }
 
 use args_builder::State;
@@ -88,21 +80,6 @@ where {
             __unsafe_private_phantom: PhantomData,
             __unsafe_private_named: unsafe_private_named,
         }
-    }
-}
-
-#[derive(Debug, Clone, Default)]
-#[cfg_attr(
-    feature = "cli",
-    derive(argh::FromArgs),
-    argh(subcommand, name = "raw")
-)]
-/// 输出原始数据
-pub struct Raw {}
-
-impl From<()> for Raw {
-    fn from(_value: ()) -> Self {
-        Self {}
     }
 }
 

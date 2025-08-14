@@ -1,16 +1,14 @@
 use std::str::FromStr;
 
-use argh::FromArgs;
+use clap::Args;
 
 use crate::Symbol;
 
 /// 股票代码格式转换
-#[derive(FromArgs, Debug)]
-#[argh(subcommand, name = "convert")]
+#[derive(Args, Debug)]
+#[command(arg_required_else_help(true))]
 pub struct Convert {
-    /// 股票代码
-    #[argh(positional)]
-    pub symbol: String,
+    symbol: String,
 }
 
 impl Convert {

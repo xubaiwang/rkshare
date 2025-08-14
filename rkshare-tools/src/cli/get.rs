@@ -1,4 +1,3 @@
-use argh::FromArgs;
 use rkshare::{
     eastmoney::cli::Eastmoney,
     sse::cli::Sse,
@@ -9,19 +8,14 @@ use rkshare::{
     xueqiu::cli::Xueqiu,
 };
 
-#[derive(FromArgs, Debug)]
 /// 请求数据
-#[argh(subcommand, name = "get")]
-pub struct Get {
-    #[argh(subcommand)]
-    pub subcommand: Subcommand,
-}
-
-#[derive(FromArgs, Debug)]
-#[argh(subcommand)]
-pub enum Subcommand {
+#[derive(clap::Subcommand, Debug)]
+pub enum Get {
+    #[command(subcommand)]
     Sse(Sse),
+    #[command(subcommand)]
     Eastmoney(Eastmoney),
+    #[command(subcommand)]
     Xueqiu(Xueqiu),
 }
 
@@ -35,10 +29,10 @@ impl Get {
 
 impl Fetch for Get {
     async fn fetch(self) -> anyhow::Result<Data> {
-        match self.subcommand {
-            Subcommand::Sse(sse) => sse.fetch().await,
-            Subcommand::Eastmoney(eastmoney) => eastmoney.fetch().await,
-            Subcommand::Xueqiu(xueqiu) => xueqiu.fetch().await,
+        match self {
+            Self::Sse(sse) => sse.fetch().await,
+            Self::Eastmoney(eastmoney) => eastmoney.fetch().await,
+            Self::Xueqiu(xueqiu) => xueqiu.fetch().await,
         }
     }
 }
