@@ -5,7 +5,7 @@ use arrow::{array::RecordBatch, datatypes::Schema, json::ReaderBuilder};
 use bon::Builder;
 use rkshare_utils::{
     FieldsInfo, Raw,
-    data::{Data, Fetch, TypeHint, TypedBytes},
+    data::{Data, Fetch, HasTypeHint, TypeHint, TypedBytes},
     mapping,
 };
 use serde::{Serialize, de::DeserializeOwned};
@@ -92,5 +92,11 @@ where
             None => self::arrow::<Extend>().await?.into(),
             Some(_) => self::raw().await?.into(),
         })
+    }
+}
+
+impl HasTypeHint for Args {
+    fn type_hint(&self) -> Option<TypeHint> {
+        self.raw.as_ref().map(|_| TypeHint::Json)
     }
 }

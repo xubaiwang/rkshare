@@ -1,4 +1,4 @@
-use rkshare_utils::data::Fetch;
+use rkshare_utils::data::{Fetch, HasTypeHint};
 
 #[derive(clap::Subcommand, Debug)]
 /// 上海证券交易所
@@ -29,6 +29,23 @@ impl Fetch for Stock {
         match self {
             Self::Summary(args) => args.fetch().await,
             Self::DealDaily(args) => args.fetch().await,
+        }
+    }
+}
+
+impl HasTypeHint for Stock {
+    fn type_hint(&self) -> Option<rkshare_utils::data::TypeHint> {
+        match self {
+            Stock::Summary(args) => args.type_hint(),
+            Stock::DealDaily(args) => args.type_hint(),
+        }
+    }
+}
+
+impl HasTypeHint for Sse {
+    fn type_hint(&self) -> Option<rkshare_utils::data::TypeHint> {
+        match self {
+            Sse::Stock(stock) => stock.type_hint(),
         }
     }
 }

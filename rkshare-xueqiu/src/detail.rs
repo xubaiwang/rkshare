@@ -6,7 +6,7 @@ use bon::Builder;
 use reqwest::header::HeaderMap;
 use rkshare_utils::{
     FieldsInfo, Raw, Symbol,
-    data::{Data, Fetch, TypeHint, TypedBytes},
+    data::{Data, Fetch, HasTypeHint, TypeHint, TypedBytes},
     mapping,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
@@ -139,5 +139,11 @@ where
             None => self::arrow::<Extend>(self.symbol).await?.into(),
             Some(_) => self::raw(self.symbol).await?.into(),
         })
+    }
+}
+
+impl HasTypeHint for Args {
+    fn type_hint(&self) -> Option<TypeHint> {
+        self.raw.as_ref().map(|_| TypeHint::Json)
     }
 }

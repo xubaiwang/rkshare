@@ -16,7 +16,6 @@ pub struct Cli {
 
 #[derive(clap::Subcommand, Debug)]
 enum Commands {
-    #[command(subcommand)]
     Get(Get),
     Serve(Serve),
     #[command(subcommand)]

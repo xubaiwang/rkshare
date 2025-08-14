@@ -8,7 +8,7 @@ use arrow_json::ReaderBuilder;
 use bon::Builder;
 use rkshare_utils::{
     FieldsInfo, Raw, Symbol,
-    data::{Data, Fetch, TypeHint, TypedBytes},
+    data::{Data, Fetch, HasTypeHint, TypeHint, TypedBytes},
     mapping,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
@@ -121,6 +121,12 @@ pub struct Args<Extra = ()> {
     #[builder(skip)]
     #[cfg_attr(feature = "cli", arg(skip))]
     _extra: PhantomData<Extra>,
+}
+
+impl<E> HasTypeHint for Args<E> {
+    fn type_hint(&self) -> Option<TypeHint> {
+        self.raw.as_ref().map(|_| TypeHint::Json)
+    }
 }
 
 use args_builder::State;

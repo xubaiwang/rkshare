@@ -139,6 +139,12 @@ pub struct Args<Extra = ()> {
     _extra: PhantomData<Extra>,
 }
 
+impl<E> HasTypeHint for Args<E> {
+    fn type_hint(&self) -> Option<TypeHint> {
+        self.raw.as_ref().map(|_| TypeHint::Json)
+    }
+}
+
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "cli", derive(clap::Args))]
 pub struct RawArgs {
@@ -156,7 +162,7 @@ use args_builder::State;
 use bon::Builder;
 use rkshare_utils::{
     FieldsInfo, Raw,
-    data::{Data, Fetch},
+    data::{Data, Fetch, HasTypeHint, TypeHint},
 };
 use serde::{Serialize, de::DeserializeOwned};
 
