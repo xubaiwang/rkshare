@@ -11,6 +11,8 @@ macro_rules! gen_mod_builder {
 
 gen_mod_builder!(basic_org_info);
 
+pub mod center_gridlist;
+
 // TODO: 发行相关 (RPT_PCF10_ORG_ISSUEINFO)
 // TODO: 参股控股 (RPT_F10_PUBLIC_OP_HOLDINGORG)
 
