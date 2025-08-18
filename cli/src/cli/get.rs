@@ -11,7 +11,6 @@ use rkshare::{
         pretty::pretty_print,
     },
     sse::cli::Sse,
-    xueqiu::cli::Xueqiu,
 };
 
 /// 从各平台接口获取数据
@@ -34,8 +33,6 @@ enum Command {
     Sse(Sse),
     /// 东方财富
     Eastmoney(Eastmoney),
-    /// 雪球
-    Xueqiu(Xueqiu),
 }
 
 impl HasTypeHint for Get {
@@ -43,7 +40,6 @@ impl HasTypeHint for Get {
         match &self.command {
             Command::Sse(sse) => sse.type_hint(),
             Command::Eastmoney(eastmoney) => eastmoney.type_hint(),
-            Command::Xueqiu(xueqiu) => xueqiu.type_hint(),
         }
     }
 }
@@ -103,7 +99,6 @@ impl Fetch for Command {
         match self {
             Command::Sse(sse) => sse.fetch().await,
             Command::Eastmoney(eastmoney) => eastmoney.fetch().await,
-            Command::Xueqiu(xueqiu) => xueqiu.fetch().await,
         }
     }
 }

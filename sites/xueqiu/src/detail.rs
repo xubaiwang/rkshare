@@ -6,7 +6,7 @@ use bon::Builder;
 use reqwest::header::HeaderMap;
 use rkshare_shared::{
     EmptyRaw, FieldsInfo, Symbol,
-    data::{Data, Fetch, HasTypeHint, TypeHint, TypedBytes},
+    data::{HasTypeHint, TypeHint, TypedBytes},
     mapping,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
@@ -108,15 +108,14 @@ where
 pub struct Args {
     #[cfg_attr(feature = "cli", argh(subcommand))]
     raw: Option<EmptyRaw>,
-
     /// 股票代码
-    #[argh(positional)]
+    #[cfg_attr(feature = "cli", argh(positional))]
     symbol: Symbol,
 }
 
 #[cfg(feature = "cli")]
-impl Fetch for Args {
-    async fn fetch(self) -> Result<Data> {
+impl rkshare_shared::data::Fetch for Args {
+    async fn fetch(self) -> Result<rkshare_shared::data::Data> {
         Ok(match &self.raw {
             None => self::arrow::<()>(self.symbol).await?.into(),
             Some(_) => self::raw(self.symbol).await?.into(),

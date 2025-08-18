@@ -109,11 +109,14 @@ mapping! { Item,
 
 /// 公司概况>基本资料
 #[derive(Builder, Debug, Clone)]
-#[cfg_attr(feature = "cli", derive(argh::FromArgs))]
-#[argh(subcommand, name = "basic_org_info")]
+#[cfg_attr(
+    feature = "cli",
+    derive(argh::FromArgs),
+    argh(subcommand, name = "basic_org_info")
+)]
 pub struct Args {
     /// 股票代码
-    #[argh(positional)]
+    #[cfg_attr(feature = "cli", argh(positional))]
     symbol: Symbol,
 
     #[cfg_attr(feature = "cli", argh(subcommand))]

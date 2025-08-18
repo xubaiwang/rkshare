@@ -5,7 +5,7 @@ use arrow::{array::RecordBatch, datatypes::Schema, json::ReaderBuilder};
 use bon::Builder;
 use rkshare_shared::{
     EmptyRaw, FieldsInfo,
-    data::{Data, Fetch, HasTypeHint, TypeHint, TypedBytes},
+    data::{Fetch, HasTypeHint, TypeHint, TypedBytes},
     mapping,
 };
 use serde::{
@@ -92,12 +92,12 @@ pub struct Args {
     #[cfg_attr(feature = "cli", argh(subcommand))]
     raw: Option<EmptyRaw>,
 
-    #[argh(positional)]
+    #[cfg_attr(feature = "cli", argh(positional))]
     date: String,
 }
 
 impl Fetch for Args {
-    async fn fetch(self) -> anyhow::Result<Data> {
+    async fn fetch(self) -> anyhow::Result<rkshare_shared::data::Data> {
         Ok(match &self.raw {
             None => self::arrow::<()>(&self.date).await?.into(),
             Some(_) => self::raw(&self.date).await?.into(),

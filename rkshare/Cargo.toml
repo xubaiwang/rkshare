@@ -8,9 +8,14 @@ rkshare-eastmoney.path = "../sites/eastmoney"
 rkshare-sse.path = "../sites/sse"
 rkshare-szse.path = "../sites/szse"
 rkshare-shared.path = "../shared/"
-rkshare-xueqiu.path = "../sites/xueqiu"
+# rkshare-xueqiu.path = "../sites/xueqiu"
 
 [features]
-cli = ["rkshare-eastmoney/cli", "rkshare-shared/cli", "rkshare-xueqiu/cli", "rkshare-sse/cli"]
+cli = [
+  "rkshare-eastmoney/cli",
+  "rkshare-shared/cli",
+  # "rkshare-xueqiu/cli",
+  "rkshare-sse/cli"
+]
 pretty = ["rkshare-shared/pretty"]
 

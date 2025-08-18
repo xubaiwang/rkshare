@@ -10,7 +10,7 @@ members = [
   "sites/eastmoney",
   "sites/sse",
   "sites/szse",
-  "sites/xueqiu",
+  # "sites/xueqiu",
 
   # 命令行工具
   "cli",

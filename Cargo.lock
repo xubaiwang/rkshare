@@ -1761,7 +1761,6 @@ dependencies = [
  "rkshare-shared",
  "rkshare-sse",
  "rkshare-szse",
- "rkshare-xueqiu",
 ]
 
 [[package]]
@@ -1839,22 +1838,6 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_arrow",
- "serde_json",
- "url",
-]
-
-[[package]]
-name = "rkshare-xueqiu"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "argh",
- "arrow",
- "bon",
- "bytes",
- "reqwest",
- "rkshare-shared",
- "serde",
  "serde_json",
  "url",
 ]
