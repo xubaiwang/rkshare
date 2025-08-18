@@ -1764,10 +1764,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rkshare-api"
-version = "0.1.0"
-
-[[package]]
 name = "rkshare-cli"
 version = "0.1.0"
 dependencies = [

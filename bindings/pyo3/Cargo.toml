@@ -13,7 +13,7 @@ arrow.workspace = true
 arrow-select.workspace = true
 pyo3.workspace = true
 pyo3-arrow.workspace = true
-rkshare.path = "../rkshare"
+rkshare.path = "../../rkshare"
 tokio.workspace = true
 
 [build-dependencies]

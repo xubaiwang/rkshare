@@ -15,11 +15,9 @@ members = [
   # 命令行工具
   "cli",
 
-  # API 接口
-  "rkshare-api",
-
   # 语言绑定
-  "pyo3-rkshare",
+  # "bindings/api",
+  "bindings/pyo3",
 ]
 
 [workspace.dependencies]
