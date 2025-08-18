@@ -1,11 +1,11 @@
-use std::{marker::PhantomData, sync::Arc};
+use std::sync::Arc;
 
 use anyhow::{Context, Result, anyhow};
 use arrow::{array::RecordBatch, datatypes::Schema, json::ReaderBuilder};
 use bon::Builder;
 use reqwest::header::HeaderMap;
 use rkshare_utils::{
-    FieldsInfo, Raw, Symbol,
+    EmptyRaw, FieldsInfo, Symbol,
     data::{Data, Fetch, HasTypeHint, TypeHint, TypedBytes},
     mapping,
 };
@@ -99,22 +99,27 @@ where
 }
 
 #[derive(Builder, Debug, Clone)]
-#[cfg_attr(feature = "cli", derive(clap::Args))]
+#[cfg_attr(
+    feature = "cli",
+    derive(argh::FromArgs),
+    argh(subcommand, name = "detail")
+)]
 /// 公司简介
-pub struct Args<Extra = ()> {
+pub struct Args<#[cfg(not(feature = "cli"))] Extra = ()> {
+    #[cfg(not(feature = "cli"))]
     #[builder(skip)]
     #[cfg_attr(feature = "cli", arg(skip))]
     _extra: PhantomData<Extra>,
 
-    #[cfg_attr(feature = "cli", command(subcommand))]
-    raw: Option<Raw>,
+    #[cfg_attr(feature = "cli", argh(subcommand))]
+    raw: Option<EmptyRaw>,
 
     /// 股票代码
+    #[argh(positional)]
     symbol: Symbol,
 }
 
-use args_builder::State;
-
+#[cfg(not(feature = "cli"))]
 #[allow(deprecated)]
 impl<F1, S: State> ArgsBuilder<F1, S> {
     pub fn extra<F2>(self) -> ArgsBuilder<F2, S>
@@ -130,6 +135,7 @@ where {
     }
 }
 
+#[cfg(not(feature = "cli"))]
 impl<Extend> Fetch for Args<Extend>
 where
     Extend: DeserializeOwned + Serialize + Send + FieldsInfo,
@@ -137,6 +143,16 @@ where
     async fn fetch(self) -> Result<Data> {
         Ok(match &self.raw {
             None => self::arrow::<Extend>(self.symbol).await?.into(),
+            Some(_) => self::raw(self.symbol).await?.into(),
+        })
+    }
+}
+
+#[cfg(feature = "cli")]
+impl Fetch for Args {
+    async fn fetch(self) -> Result<Data> {
+        Ok(match &self.raw {
+            None => self::arrow::<()>(self.symbol).await?.into(),
             Some(_) => self::raw(self.symbol).await?.into(),
         })
     }

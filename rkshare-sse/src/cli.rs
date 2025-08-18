@@ -1,9 +1,16 @@
 use rkshare_utils::data::{Fetch, HasTypeHint};
 
-#[derive(clap::Subcommand, Debug)]
 /// 上海证券交易所
-pub enum Sse {
-    #[command(subcommand)]
+#[derive(argh::FromArgs, Debug)]
+#[argh(subcommand, name = "sse")]
+pub struct Sse {
+    #[argh(subcommand)]
+    command: Command,
+}
+
+#[derive(argh::FromArgs, Debug)]
+#[argh(subcommand)]
+pub enum Command {
     Stock(Stock),
 }
 
@@ -11,41 +18,50 @@ impl Fetch for Sse {
     fn fetch(
         self,
     ) -> impl std::future::Future<Output = anyhow::Result<rkshare_utils::data::Data>> + Send {
-        match self {
-            Self::Stock(stock) => stock.fetch(),
+        match self.command {
+            Command::Stock(stock) => stock.fetch(),
         }
     }
 }
 
-#[derive(clap::Subcommand, Debug)]
 /// 股票市场
-pub enum Stock {
+#[derive(argh::FromArgs, Debug)]
+#[argh(subcommand, name = "stock")]
+pub struct Stock {
+    #[argh(subcommand)]
+    command: StockCommand,
+}
+
+/// 股票市场
+#[derive(argh::FromArgs, Debug)]
+#[argh(subcommand)]
+pub enum StockCommand {
     Summary(crate::stock::summary::Args),
     DealDaily(crate::stock::deal_daily::Args),
 }
 
 impl Fetch for Stock {
     async fn fetch(self) -> anyhow::Result<rkshare_utils::data::Data> {
-        match self {
-            Self::Summary(args) => args.fetch().await,
-            Self::DealDaily(args) => args.fetch().await,
+        match self.command {
+            StockCommand::Summary(args) => args.fetch().await,
+            StockCommand::DealDaily(args) => args.fetch().await,
         }
     }
 }
 
 impl HasTypeHint for Stock {
     fn type_hint(&self) -> Option<rkshare_utils::data::TypeHint> {
-        match self {
-            Stock::Summary(args) => args.type_hint(),
-            Stock::DealDaily(args) => args.type_hint(),
+        match &self.command {
+            StockCommand::Summary(args) => args.type_hint(),
+            StockCommand::DealDaily(args) => args.type_hint(),
         }
     }
 }
 
 impl HasTypeHint for Sse {
     fn type_hint(&self) -> Option<rkshare_utils::data::TypeHint> {
-        match self {
-            Sse::Stock(stock) => stock.type_hint(),
+        match &self.command {
+            Command::Stock(stock) => stock.type_hint(),
         }
     }
 }

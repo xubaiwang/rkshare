@@ -1,7 +1,8 @@
 use std::time::Duration;
 
 /// 启动 API 服务器（暂不可用）
-#[derive(clap::Args, Debug)]
+#[derive(argh::FromArgs, Debug)]
+#[argh(subcommand, name = "serve")]
 pub struct Serve {}
 
 impl Serve {

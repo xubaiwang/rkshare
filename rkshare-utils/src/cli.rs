@@ -1,13 +1,13 @@
 use std::str::FromStr;
 
-use clap::Args;
-
 use crate::Symbol;
 
 /// 股票代码格式转换
-#[derive(Args, Debug)]
-#[command(arg_required_else_help(true))]
+#[derive(argh::FromArgs, Debug)]
+#[argh(subcommand, name = "convert")]
 pub struct Convert {
+    /// 股票代码
+    #[argh(positional)]
     symbol: String,
 }
 

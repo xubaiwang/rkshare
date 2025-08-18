@@ -27,18 +27,11 @@ impl FieldsInfo for () {
     }
 }
 
-#[cfg(feature = "cli")]
-#[derive(clap::Subcommand, Clone, Debug)]
-pub enum Raw<T: clap::Args = EmptyArgs> {
-    Raw(T),
-}
-
-impl<T: Default + clap::Args> Default for Raw<T> {
-    fn default() -> Self {
-        Self::Raw(T::default())
-    }
-}
-
-#[cfg(feature = "cli")]
-#[derive(clap::Args, Default, Clone, Debug)]
-pub struct EmptyArgs;
+/// 获取原始数据
+#[derive(Default, Debug, Clone)]
+#[cfg_attr(
+    feature = "cli",
+    derive(argh::FromArgs),
+    argh(subcommand, name = "raw")
+)]
+pub struct EmptyRaw {}

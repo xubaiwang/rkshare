@@ -128,44 +128,56 @@ pub mod fetch {
 
 /// 行情中心
 #[derive(Builder, Debug, Clone)]
-#[cfg_attr(feature = "cli", derive(clap::Args))]
-pub struct Args<Extra = ()> {
-    #[cfg_attr(feature = "cli", command(subcommand))]
+#[cfg_attr(
+    feature = "cli",
+    derive(argh::FromArgs),
+    argh(subcommand, name = "center_gridlist")
+)]
+pub struct Args<#[cfg(not(feature = "cli"))] Extra = ()> {
+    #[cfg_attr(feature = "cli", argh(subcommand))]
     #[builder(into)]
-    raw: Option<Raw<RawArgs>>,
+    raw: Option<Raw>,
 
+    #[cfg(not(feature = "cli"))]
     #[builder(skip)]
     #[cfg_attr(feature = "cli", arg(skip))]
     _extra: PhantomData<Extra>,
 }
 
+#[cfg(not(feature = "cli"))]
 impl<E> HasTypeHint for Args<E> {
     fn type_hint(&self) -> Option<TypeHint> {
         self.raw.as_ref().map(|_| TypeHint::Json)
     }
 }
 
+#[cfg(feature = "cli")]
+impl HasTypeHint for Args {
+    fn type_hint(&self) -> Option<TypeHint> {
+        self.raw.as_ref().map(|_| TypeHint::Json)
+    }
+}
+
+/// 获取原始数据
 #[derive(Clone, Debug)]
-#[cfg_attr(feature = "cli", derive(clap::Args))]
-pub struct RawArgs {
+#[cfg_attr(
+    feature = "cli",
+    derive(argh::FromArgs),
+    argh(subcommand, name = "raw")
+)]
+pub struct Raw {
     /// 页码
-    #[cfg_attr(feature = "cli", arg(default_value_t = 1))]
+    #[cfg_attr(feature = "cli", argh(option, default = "1"))]
     page: u32,
     /// 页面大小
-    #[cfg_attr(feature = "cli", arg(long, default_value_t = 100))]
+    #[cfg_attr(feature = "cli", argh(option, default = "100"))]
     size: u32,
 }
 
-use std::marker::PhantomData;
-
-use args_builder::State;
 use bon::Builder;
-use rkshare_utils::{
-    FieldsInfo, Raw,
-    data::{Data, Fetch, HasTypeHint, TypeHint},
-};
-use serde::{Serialize, de::DeserializeOwned};
+use rkshare_utils::data::{Data, Fetch, HasTypeHint, TypeHint};
 
+#[cfg(not(feature = "cli"))]
 #[allow(deprecated)]
 impl<F1, S: State> ArgsBuilder<F1, S> {
     pub fn extra<F2>(self) -> ArgsBuilder<F2, S>
@@ -181,6 +193,7 @@ where {
     }
 }
 
+#[cfg(not(feature = "cli"))]
 impl<Extend> Fetch for Args<Extend>
 where
     Extend: DeserializeOwned + Serialize + Send + FieldsInfo,
@@ -188,10 +201,23 @@ where
     async fn fetch(self) -> anyhow::Result<Data> {
         Ok(match &self.raw {
             None => fetch::arrow::<Extend>().await?.into(),
-            Some(Raw::Raw(RawArgs {
+            Some(Raw {
                 page: page_number,
                 size: page_size,
-            })) => fetch::raw(*page_number, *page_size).await?.into(),
+            }) => fetch::raw(page_number, page_size).await?.into(),
+        })
+    }
+}
+
+#[cfg(feature = "cli")]
+impl Fetch for Args {
+    async fn fetch(self) -> anyhow::Result<Data> {
+        Ok(match &self.raw {
+            None => fetch::arrow::<()>().await?.into(),
+            Some(Raw {
+                page: page_number,
+                size: page_size,
+            }) => fetch::raw(*page_number, *page_size).await?.into(),
         })
     }
 }

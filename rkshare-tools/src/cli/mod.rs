@@ -7,18 +7,17 @@ mod serve;
 mod utils;
 
 /// RkShare 开源财经数据接口库——命令行工具。
-#[derive(clap::Parser, Debug)]
-#[command(arg_required_else_help(true), disable_help_subcommand(true))]
+#[derive(argh::FromArgs, Debug)]
 pub struct Cli {
-    #[command(subcommand)]
+    #[argh(subcommand)]
     commands: Commands,
 }
 
-#[derive(clap::Subcommand, Debug)]
+#[derive(argh::FromArgs, Debug)]
+#[argh(subcommand)]
 enum Commands {
     Get(Get),
     Serve(Serve),
-    #[command(subcommand)]
     Utils(Utils),
 }
 

@@ -42,6 +42,7 @@
             ];
             shellHook = ''
               alias rkshare="cargo run --quiet --"
+              export SHELL=${pkgs.bashInteractive}/bin/bash
             '';
           };
       }

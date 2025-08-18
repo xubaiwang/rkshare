@@ -15,27 +15,26 @@ use rkshare::{
 };
 
 /// 从各平台接口获取数据
-#[derive(clap::Args, Debug)]
+#[derive(argh::FromArgs, Debug)]
+#[argh(subcommand, name = "get")]
 pub struct Get {
     // TODO: allow specify format
     /// 输出结果到文件
-    #[arg(long, short, global = true)]
+    #[argh(option)]
     output: Option<PathBuf>,
 
-    #[command(subcommand)]
+    #[argh(subcommand)]
     command: Command,
 }
 
-#[derive(clap::Subcommand, Debug)]
+#[derive(argh::FromArgs, Debug)]
+#[argh(subcommand)]
 enum Command {
     /// 上海证券交易所
-    #[command(subcommand, visible_aliases = &["sh", "上海证券交易所", "上交所"])]
     Sse(Sse),
     /// 东方财富
-    #[command(subcommand, visible_aliases = &["em", "东方财富", "东财"])]
     Eastmoney(Eastmoney),
     /// 雪球
-    #[command(subcommand, visible_aliases = &["xq", "雪球"])]
     Xueqiu(Xueqiu),
 }
 

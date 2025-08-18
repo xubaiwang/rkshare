@@ -1,9 +1,16 @@
-use clap::Subcommand;
 use rkshare_utils::data::{Fetch, HasTypeHint};
 
 /// 雪球
-#[derive(Subcommand, Debug)]
-pub enum Xueqiu {
+#[derive(argh::FromArgs, Debug)]
+#[argh(subcommand, name = "xueqiu")]
+pub struct Xueqiu {
+    #[argh(subcommand)]
+    pub command: Command,
+}
+
+#[derive(argh::FromArgs, Debug)]
+#[argh(subcommand)]
+pub enum Command {
     Detail(crate::detail::Args),
 }
 
@@ -11,16 +18,16 @@ impl Fetch for Xueqiu {
     fn fetch(
         self,
     ) -> impl std::future::Future<Output = anyhow::Result<rkshare_utils::data::Data>> + Send {
-        match self {
-            Self::Detail(args) => args.fetch(),
+        match self.command {
+            Command::Detail(args) => args.fetch(),
         }
     }
 }
 
 impl HasTypeHint for Xueqiu {
     fn type_hint(&self) -> Option<rkshare_utils::data::TypeHint> {
-        match self {
-            Xueqiu::Detail(args) => args.type_hint(),
+        match &self.command {
+            Command::Detail(args) => args.type_hint(),
         }
     }
 }

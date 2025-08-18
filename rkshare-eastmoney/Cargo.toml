@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 anyhow.workspace = true
-clap = { workspace = true, optional = true }
+argh = { workspace = true, optional = true }
 arrow.workspace = true
 arrow-json.workspace = true
 bon.workspace = true
@@ -17,5 +17,5 @@ serde_json.workspace = true
 url.workspace = true
 
 [features]
-cli = ["dep:clap"]
+cli = ["dep:argh"]
 

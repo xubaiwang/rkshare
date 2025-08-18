@@ -18,16 +18,16 @@ async fn main() {
 
     pretty_print(raw).unwrap();
 
-    // arrow with custom field
-    let batch = basic_org_info()
-        .symbol(symbol.clone())
-        .extra::<ExtraFields>()
-        .build()
-        .fetch()
-        .await
-        .unwrap();
-
-    pretty_print(batch).unwrap();
+    // // arrow with custom field
+    // let batch = basic_org_info()
+    //     .symbol(symbol.clone())
+    //     .extra::<ExtraFields>()
+    //     .build()
+    //     .fetch()
+    //     .await
+    //     .unwrap();
+    //
+    // pretty_print(batch).unwrap();
 }
 
 rkshare::utils::mapping! { ExtraFields,

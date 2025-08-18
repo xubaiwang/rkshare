@@ -1,13 +1,13 @@
 //! 公司概况 > 基本资料
 
-use std::{marker::PhantomData, sync::Arc};
+use std::sync::Arc;
 
 use anyhow::{Context, Result, anyhow};
 use arrow::{array::RecordBatch, datatypes::Schema};
 use arrow_json::ReaderBuilder;
 use bon::Builder;
 use rkshare_utils::{
-    FieldsInfo, Raw, Symbol,
+    EmptyRaw, FieldsInfo, Symbol,
     data::{Data, Fetch, HasTypeHint, TypeHint, TypedBytes},
     mapping,
 };
@@ -107,32 +107,42 @@ mapping! { Item,
     BUSINESS_SCOPE => "经营范围": String,
 }
 
-#[derive(Builder, Debug, Clone)]
-#[cfg_attr(feature = "cli", derive(clap::Args))]
 /// 公司概况>基本资料
-pub struct Args<Extra = ()> {
+#[derive(Builder, Debug, Clone)]
+#[cfg_attr(feature = "cli", derive(argh::FromArgs))]
+#[argh(subcommand, name = "basic_org_info")]
+pub struct Args<#[cfg(not(feature = "cli"))] Extra = ()> {
     /// 股票代码
+    #[argh(positional)]
     symbol: Symbol,
 
-    #[cfg_attr(feature = "cli", command(subcommand))]
+    #[cfg_attr(feature = "cli", argh(subcommand))]
     #[builder(with = || Default::default())]
-    raw: Option<Raw>,
+    raw: Option<EmptyRaw>,
 
+    #[cfg(not(feature = "cli"))]
     #[builder(skip)]
-    #[cfg_attr(feature = "cli", arg(skip))]
+    #[cfg_attr(feature = "cli", argh(skip))]
     _extra: PhantomData<Extra>,
 }
 
+#[cfg(not(feature = "cli"))]
 impl<E> HasTypeHint for Args<E> {
     fn type_hint(&self) -> Option<TypeHint> {
         self.raw.as_ref().map(|_| TypeHint::Json)
     }
 }
 
-use args_builder::State;
+#[cfg(feature = "cli")]
+impl HasTypeHint for Args {
+    fn type_hint(&self) -> Option<TypeHint> {
+        self.raw.as_ref().map(|_| TypeHint::Json)
+    }
+}
 
+#[cfg(not(feature = "cli"))]
 #[allow(deprecated)]
-impl<F1, S: State> ArgsBuilder<F1, S> {
+impl<F1, S: args_builder::State> ArgsBuilder<F1, S> {
     pub fn extra<F2>(self) -> ArgsBuilder<F2, S>
 where {
         let ArgsBuilder {
@@ -146,6 +156,7 @@ where {
     }
 }
 
+#[cfg(not(feature = "cli"))]
 impl<Extend> Fetch for Args<Extend>
 where
     Extend: DeserializeOwned + Serialize + Send + FieldsInfo,
@@ -153,6 +164,16 @@ where
     async fn fetch(self) -> Result<Data> {
         Ok(match &self.raw {
             None => self::arrow::<Extend>(self.symbol).await?.into(),
+            Some(_) => self::raw(self.symbol).await?.into(),
+        })
+    }
+}
+
+#[cfg(feature = "cli")]
+impl Fetch for Args {
+    async fn fetch(self) -> Result<Data> {
+        Ok(match &self.raw {
+            None => self::arrow::<()>(self.symbol).await?.into(),
             Some(_) => self::raw(self.symbol).await?.into(),
         })
     }
