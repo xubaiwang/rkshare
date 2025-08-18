@@ -105,47 +105,13 @@ where
     argh(subcommand, name = "detail")
 )]
 /// 公司简介
-pub struct Args<#[cfg(not(feature = "cli"))] Extra = ()> {
-    #[cfg(not(feature = "cli"))]
-    #[builder(skip)]
-    #[cfg_attr(feature = "cli", arg(skip))]
-    _extra: PhantomData<Extra>,
-
+pub struct Args {
     #[cfg_attr(feature = "cli", argh(subcommand))]
     raw: Option<EmptyRaw>,
 
     /// 股票代码
     #[argh(positional)]
     symbol: Symbol,
-}
-
-#[cfg(not(feature = "cli"))]
-#[allow(deprecated)]
-impl<F1, S: State> ArgsBuilder<F1, S> {
-    pub fn extra<F2>(self) -> ArgsBuilder<F2, S>
-where {
-        let ArgsBuilder {
-            __unsafe_private_named: unsafe_private_named,
-            ..
-        } = self;
-        ArgsBuilder {
-            __unsafe_private_phantom: PhantomData,
-            __unsafe_private_named: unsafe_private_named,
-        }
-    }
-}
-
-#[cfg(not(feature = "cli"))]
-impl<Extend> Fetch for Args<Extend>
-where
-    Extend: DeserializeOwned + Serialize + Send + FieldsInfo,
-{
-    async fn fetch(self) -> Result<Data> {
-        Ok(match &self.raw {
-            None => self::arrow::<Extend>(self.symbol).await?.into(),
-            Some(_) => self::raw(self.symbol).await?.into(),
-        })
-    }
 }
 
 #[cfg(feature = "cli")]

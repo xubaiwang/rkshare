@@ -88,48 +88,14 @@ where
     argh(subcommand, name = "deal_daily")
 )]
 /// 市场总貌
-pub struct Args<#[cfg(not(feature = "cli"))] Extra = ()> {
+pub struct Args {
     #[cfg_attr(feature = "cli", argh(subcommand))]
     raw: Option<EmptyRaw>,
 
     #[argh(positional)]
     date: String,
-
-    #[cfg(not(feature = "cli"))]
-    #[builder(skip)]
-    _extra: PhantomData<Extra>,
 }
 
-#[cfg(not(feature = "cli"))]
-#[allow(deprecated)]
-impl<F1, S: State> ArgsBuilder<F1, S> {
-    pub fn extra<F2>(self) -> ArgsBuilder<F2, S>
-where {
-        let ArgsBuilder {
-            __unsafe_private_named: unsafe_private_named,
-            ..
-        } = self;
-        ArgsBuilder {
-            __unsafe_private_phantom: PhantomData,
-            __unsafe_private_named: unsafe_private_named,
-        }
-    }
-}
-
-#[cfg(not(feature = "cli"))]
-impl<Extend> Fetch for Args<Extend>
-where
-    Extend: DeserializeOwned + Serialize + Send + FieldsInfo,
-{
-    async fn fetch(self) -> anyhow::Result<Data> {
-        Ok(match &self.raw {
-            None => self::arrow::<Extend>(&self.date).await?.into(),
-            Some(_) => self::raw(&self.date).await?.into(),
-        })
-    }
-}
-
-#[cfg(feature = "cli")]
 impl Fetch for Args {
     async fn fetch(self) -> anyhow::Result<Data> {
         Ok(match &self.raw {

@@ -111,7 +111,7 @@ mapping! { Item,
 #[derive(Builder, Debug, Clone)]
 #[cfg_attr(feature = "cli", derive(argh::FromArgs))]
 #[argh(subcommand, name = "basic_org_info")]
-pub struct Args<#[cfg(not(feature = "cli"))] Extra = ()> {
+pub struct Args {
     /// 股票代码
     #[argh(positional)]
     symbol: Symbol,
@@ -119,57 +119,14 @@ pub struct Args<#[cfg(not(feature = "cli"))] Extra = ()> {
     #[cfg_attr(feature = "cli", argh(subcommand))]
     #[builder(with = || Default::default())]
     raw: Option<EmptyRaw>,
-
-    #[cfg(not(feature = "cli"))]
-    #[builder(skip)]
-    #[cfg_attr(feature = "cli", argh(skip))]
-    _extra: PhantomData<Extra>,
 }
 
-#[cfg(not(feature = "cli"))]
-impl<E> HasTypeHint for Args<E> {
-    fn type_hint(&self) -> Option<TypeHint> {
-        self.raw.as_ref().map(|_| TypeHint::Json)
-    }
-}
-
-#[cfg(feature = "cli")]
 impl HasTypeHint for Args {
     fn type_hint(&self) -> Option<TypeHint> {
         self.raw.as_ref().map(|_| TypeHint::Json)
     }
 }
 
-#[cfg(not(feature = "cli"))]
-#[allow(deprecated)]
-impl<F1, S: args_builder::State> ArgsBuilder<F1, S> {
-    pub fn extra<F2>(self) -> ArgsBuilder<F2, S>
-where {
-        let ArgsBuilder {
-            __unsafe_private_named: unsafe_private_named,
-            ..
-        } = self;
-        ArgsBuilder {
-            __unsafe_private_phantom: PhantomData,
-            __unsafe_private_named: unsafe_private_named,
-        }
-    }
-}
-
-#[cfg(not(feature = "cli"))]
-impl<Extend> Fetch for Args<Extend>
-where
-    Extend: DeserializeOwned + Serialize + Send + FieldsInfo,
-{
-    async fn fetch(self) -> Result<Data> {
-        Ok(match &self.raw {
-            None => self::arrow::<Extend>(self.symbol).await?.into(),
-            Some(_) => self::raw(self.symbol).await?.into(),
-        })
-    }
-}
-
-#[cfg(feature = "cli")]
 impl Fetch for Args {
     async fn fetch(self) -> Result<Data> {
         Ok(match &self.raw {

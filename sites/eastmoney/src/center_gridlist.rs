@@ -133,25 +133,12 @@ pub mod fetch {
     derive(argh::FromArgs),
     argh(subcommand, name = "center_gridlist")
 )]
-pub struct Args<#[cfg(not(feature = "cli"))] Extra = ()> {
+pub struct Args {
     #[cfg_attr(feature = "cli", argh(subcommand))]
     #[builder(into)]
     raw: Option<Raw>,
-
-    #[cfg(not(feature = "cli"))]
-    #[builder(skip)]
-    #[cfg_attr(feature = "cli", arg(skip))]
-    _extra: PhantomData<Extra>,
 }
 
-#[cfg(not(feature = "cli"))]
-impl<E> HasTypeHint for Args<E> {
-    fn type_hint(&self) -> Option<TypeHint> {
-        self.raw.as_ref().map(|_| TypeHint::Json)
-    }
-}
-
-#[cfg(feature = "cli")]
 impl HasTypeHint for Args {
     fn type_hint(&self) -> Option<TypeHint> {
         self.raw.as_ref().map(|_| TypeHint::Json)
@@ -177,39 +164,6 @@ pub struct Raw {
 use bon::Builder;
 use rkshare_shared::data::{Data, Fetch, HasTypeHint, TypeHint};
 
-#[cfg(not(feature = "cli"))]
-#[allow(deprecated)]
-impl<F1, S: State> ArgsBuilder<F1, S> {
-    pub fn extra<F2>(self) -> ArgsBuilder<F2, S>
-where {
-        let ArgsBuilder {
-            __unsafe_private_named: unsafe_private_named,
-            ..
-        } = self;
-        ArgsBuilder {
-            __unsafe_private_phantom: PhantomData,
-            __unsafe_private_named: unsafe_private_named,
-        }
-    }
-}
-
-#[cfg(not(feature = "cli"))]
-impl<Extend> Fetch for Args<Extend>
-where
-    Extend: DeserializeOwned + Serialize + Send + FieldsInfo,
-{
-    async fn fetch(self) -> anyhow::Result<Data> {
-        Ok(match &self.raw {
-            None => fetch::arrow::<Extend>().await?.into(),
-            Some(Raw {
-                page: page_number,
-                size: page_size,
-            }) => fetch::raw(page_number, page_size).await?.into(),
-        })
-    }
-}
-
-#[cfg(feature = "cli")]
 impl Fetch for Args {
     async fn fetch(self) -> anyhow::Result<Data> {
         Ok(match &self.raw {
