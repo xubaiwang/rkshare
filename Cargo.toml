@@ -17,7 +17,7 @@ members = [
 
   # 语言绑定
   # "bindings/api",
-  "bindings/pyo3",
+  "bindings/python",
 ]
 
 [workspace.dependencies]
@@ -29,7 +29,8 @@ bon = "3.7.0"
 bytes = "1.10.1"
 argh = "0.1.13"
 derive_more = "2.0.1"
-pyo3 = { version = "0.25.1", features = ["extension-module"] }
+pyo3 = { version = "0.25.1", features = ["extension-module", "experimental-async"] }
+pyo3-async-runtimes = { version = "0.25.0", features = ["tokio-runtime"] }
 pyo3-arrow = "0.11.0"
 pyo3-build-config = "0.25.1"
 reqwest = { version = "0.12.22", features = ["json"] }

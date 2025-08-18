@@ -21,9 +21,15 @@
           inherit system;
           overlays = [ rust-overlay.overlays.default ];
         };
-        toolchain = pkgs.rust-bin.fromRustupToolchainFile ./toolchain.toml;
+        toolchainNoLsp = pkgs.rust-bin.stable.latest.default;
+        toolchain = toolchainNoLsp.override {
+          extensions = [
+            "rust-src"
+            "rust-analyzer"
+          ];
+        };
       in
-      {
+      rec {
         devShells.default =
           with pkgs;
           mkShell {
@@ -42,6 +48,62 @@
             ];
             shellHook = ''
               alias rkshare="cargo run --quiet --"
+              export SHELL=${pkgs.bashInteractive}/bin/bash
+            '';
+          };
+
+        packages.pyo3-rkshare =
+          with pkgs;
+          python3Packages.buildPythonPackage {
+            pname = "pyo3-rkshare";
+            version = "0.1.0";
+            src = ./.;
+
+            pyproject = true;
+
+            build-system = [ rustPlatform.maturinBuildHook ];
+
+            cargoDeps = rustPlatform.importCargoLock {
+              lockFile = ./Cargo.lock;
+            };
+
+            maturinBuildFlags = [
+              "-m"
+              "./bindings/python/Cargo.toml"
+            ];
+
+            pythonImportsCheck = [ "rkshare" ];
+
+            buildInputs = [
+              openssl
+            ];
+
+            nativeBuildInputs = [
+              pkg-config
+              toolchainNoLsp
+
+              rustPlatform.cargoSetupHook
+              # rustPlatform.cargoBuildHook
+            ];
+          };
+
+        devShells.python =
+          with pkgs;
+          mkShell {
+            packages = [
+              pyright
+              (python3.withPackages (
+                ps:
+                (with ps; [
+                  ipykernel
+                  pandas
+                ])
+                ++ [
+                  packages.pyo3-rkshare
+                ]
+              ))
+            ];
+            shellHook = ''
               export SHELL=${pkgs.bashInteractive}/bin/bash
             '';
           };
