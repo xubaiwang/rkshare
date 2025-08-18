@@ -6,7 +6,7 @@ use anyhow::{Context, Result, anyhow};
 use arrow::{array::RecordBatch, datatypes::Schema};
 use arrow_json::ReaderBuilder;
 use bon::Builder;
-use rkshare_utils::{
+use rkshare_shared::{
     EmptyRaw, FieldsInfo, Symbol,
     data::{Data, Fetch, HasTypeHint, TypeHint, TypedBytes},
     mapping,

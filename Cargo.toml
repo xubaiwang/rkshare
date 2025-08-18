@@ -1,15 +1,25 @@
 [workspace]
 resolver = "3"
 members = [
-  "pyo3-rkshare",
+  # 总括包
   "rkshare",
+
+  "shared",
+
+  # 网站数据源
+  "sites/eastmoney",
+  "sites/sse",
+  "sites/szse",
+  "sites/xueqiu",
+
+  # 命令行工具
+  "cli",
+
+  # API 接口
   "rkshare-api",
-  "rkshare-eastmoney",
-  "rkshare-sse",
-  "rkshare-szse",
-  "rkshare-tools",
-  "rkshare-utils",
-  "rkshare-xueqiu",
+
+  # 语言绑定
+  "pyo3-rkshare",
 ]
 
 [workspace.dependencies]

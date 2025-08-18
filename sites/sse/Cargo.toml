@@ -1,19 +1,20 @@
 [package]
-name = "rkshare-xueqiu"
+name = "rkshare-sse"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-anyhow.workspace = true
 argh = { workspace = true, optional = true }
+anyhow.workspace = true
 arrow.workspace = true
 bon.workspace = true
 bytes.workspace = true
 reqwest.workspace = true
 serde.workspace = true
+serde_arrow.workspace = true
 serde_json.workspace = true
 url.workspace = true
-rkshare-utils.path = "../rkshare-utils"
+rkshare-shared.path = "../../shared/"
 
 [features]
 cli = ["dep:argh"]

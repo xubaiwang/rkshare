@@ -5,7 +5,7 @@ pub mod fetch {
     use anyhow::{Context, Result};
     use arrow::{array::RecordBatch, datatypes::Schema};
     use arrow_json::ReaderBuilder;
-    use rkshare_utils::{
+    use rkshare_shared::{
         FieldsInfo,
         data::{TypeHint, TypedBytes},
         mapping,
@@ -175,7 +175,7 @@ pub struct Raw {
 }
 
 use bon::Builder;
-use rkshare_utils::data::{Data, Fetch, HasTypeHint, TypeHint};
+use rkshare_shared::data::{Data, Fetch, HasTypeHint, TypeHint};
 
 #[cfg(not(feature = "cli"))]
 #[allow(deprecated)]

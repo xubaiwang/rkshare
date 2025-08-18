@@ -1,4 +1,4 @@
-use rkshare_utils::data::{Fetch, HasTypeHint};
+use rkshare_shared::data::{Fetch, HasTypeHint};
 
 /// 雪球
 #[derive(argh::FromArgs, Debug)]
@@ -17,7 +17,7 @@ pub enum Command {
 impl Fetch for Xueqiu {
     fn fetch(
         self,
-    ) -> impl std::future::Future<Output = anyhow::Result<rkshare_utils::data::Data>> + Send {
+    ) -> impl std::future::Future<Output = anyhow::Result<rkshare_shared::data::Data>> + Send {
         match self.command {
             Command::Detail(args) => args.fetch(),
         }
@@ -25,7 +25,7 @@ impl Fetch for Xueqiu {
 }
 
 impl HasTypeHint for Xueqiu {
-    fn type_hint(&self) -> Option<rkshare_utils::data::TypeHint> {
+    fn type_hint(&self) -> Option<rkshare_shared::data::TypeHint> {
         match &self.command {
             Command::Detail(args) => args.type_hint(),
         }

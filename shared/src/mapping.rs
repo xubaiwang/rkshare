@@ -33,9 +33,9 @@ macro_rules! mapping {
             extend: Extend,
         }
 
-        impl<Extend> rkshare_utils::FieldsInfo for $name<Extend>
+        impl<Extend> rkshare_shared::FieldsInfo for $name<Extend>
         where
-            Extend: rkshare_utils::FieldsInfo
+            Extend: rkshare_shared::FieldsInfo
         {
             fn fields() -> Vec<arrow::datatypes::Field> {
                 let mut fields = vec![

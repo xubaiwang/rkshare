@@ -4,19 +4,13 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-rkshare-eastmoney.path = "../rkshare-eastmoney"
-rkshare-sse.path = "../rkshare-sse"
-rkshare-szse.path = "../rkshare-szse"
-rkshare-utils.path = "../rkshare-utils"
-rkshare-xueqiu.path = "../rkshare-xueqiu"
-
-[dev-dependencies]
-arrow.workspace = true
-rkshare-utils = { features = ["pretty"], path = "../rkshare-utils" }
-serde.workspace = true
-tokio.workspace = true
+rkshare-eastmoney.path = "../sites/eastmoney"
+rkshare-sse.path = "../sites/sse"
+rkshare-szse.path = "../sites/szse"
+rkshare-shared.path = "../shared/"
+rkshare-xueqiu.path = "../sites/xueqiu"
 
 [features]
-cli = ["rkshare-eastmoney/cli", "rkshare-utils/cli", "rkshare-xueqiu/cli", "rkshare-sse/cli"]
-pretty = ["rkshare-utils/pretty"]
+cli = ["rkshare-eastmoney/cli", "rkshare-shared/cli", "rkshare-xueqiu/cli", "rkshare-sse/cli"]
+pretty = ["rkshare-shared/pretty"]
 

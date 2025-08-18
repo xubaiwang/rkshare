@@ -1,5 +1,5 @@
 use anyhow::Result;
-use rkshare_utils::data::{Data, Fetch, HasTypeHint};
+use rkshare_shared::data::{Data, Fetch, HasTypeHint};
 
 /// 东方财富
 #[derive(argh::FromArgs, Debug)]
@@ -26,7 +26,7 @@ impl Fetch for Eastmoney {
 }
 
 impl HasTypeHint for Eastmoney {
-    fn type_hint(&self) -> Option<rkshare_utils::data::TypeHint> {
+    fn type_hint(&self) -> Option<rkshare_shared::data::TypeHint> {
         match &self.command {
             Command::BasicOrgInfo(args) => args.type_hint(),
             Command::CenterGridlist(args) => args.type_hint(),

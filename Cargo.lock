@@ -1757,19 +1757,30 @@ dependencies = [
 name = "rkshare"
 version = "0.1.0"
 dependencies = [
- "arrow",
  "rkshare-eastmoney",
+ "rkshare-shared",
  "rkshare-sse",
  "rkshare-szse",
- "rkshare-utils",
  "rkshare-xueqiu",
- "serde",
- "tokio",
 ]
 
 [[package]]
 name = "rkshare-api"
 version = "0.1.0"
+
+[[package]]
+name = "rkshare-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "argh",
+ "arrow",
+ "bytes",
+ "rkshare",
+ "serde",
+ "serde_json",
+ "tokio",
+]
 
 [[package]]
 name = "rkshare-eastmoney"
@@ -1782,10 +1793,23 @@ dependencies = [
  "bon",
  "bytes",
  "reqwest",
- "rkshare-utils",
+ "rkshare-shared",
  "serde",
  "serde_json",
  "url",
+]
+
+[[package]]
+name = "rkshare-shared"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "argh",
+ "arrow",
+ "bytes",
+ "derive_more",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -1798,7 +1822,7 @@ dependencies = [
  "bon",
  "bytes",
  "reqwest",
- "rkshare-utils",
+ "rkshare-shared",
  "serde",
  "serde_arrow",
  "serde_json",
@@ -1820,33 +1844,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rkshare-tools"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "argh",
- "arrow",
- "bytes",
- "rkshare",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "rkshare-utils"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "argh",
- "arrow",
- "bytes",
- "derive_more",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "rkshare-xueqiu"
 version = "0.1.0"
 dependencies = [
@@ -1856,7 +1853,7 @@ dependencies = [
  "bon",
  "bytes",
  "reqwest",
- "rkshare-utils",
+ "rkshare-shared",
  "serde",
  "serde_json",
  "url",

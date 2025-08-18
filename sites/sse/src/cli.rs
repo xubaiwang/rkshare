@@ -1,4 +1,4 @@
-use rkshare_utils::data::{Fetch, HasTypeHint};
+use rkshare_shared::data::{Fetch, HasTypeHint};
 
 /// 上海证券交易所
 #[derive(argh::FromArgs, Debug)]
@@ -17,7 +17,7 @@ pub enum Command {
 impl Fetch for Sse {
     fn fetch(
         self,
-    ) -> impl std::future::Future<Output = anyhow::Result<rkshare_utils::data::Data>> + Send {
+    ) -> impl std::future::Future<Output = anyhow::Result<rkshare_shared::data::Data>> + Send {
         match self.command {
             Command::Stock(stock) => stock.fetch(),
         }
@@ -41,7 +41,7 @@ pub enum StockCommand {
 }
 
 impl Fetch for Stock {
-    async fn fetch(self) -> anyhow::Result<rkshare_utils::data::Data> {
+    async fn fetch(self) -> anyhow::Result<rkshare_shared::data::Data> {
         match self.command {
             StockCommand::Summary(args) => args.fetch().await,
             StockCommand::DealDaily(args) => args.fetch().await,
@@ -50,7 +50,7 @@ impl Fetch for Stock {
 }
 
 impl HasTypeHint for Stock {
-    fn type_hint(&self) -> Option<rkshare_utils::data::TypeHint> {
+    fn type_hint(&self) -> Option<rkshare_shared::data::TypeHint> {
         match &self.command {
             StockCommand::Summary(args) => args.type_hint(),
             StockCommand::DealDaily(args) => args.type_hint(),
@@ -59,7 +59,7 @@ impl HasTypeHint for Stock {
 }
 
 impl HasTypeHint for Sse {
-    fn type_hint(&self) -> Option<rkshare_utils::data::TypeHint> {
+    fn type_hint(&self) -> Option<rkshare_shared::data::TypeHint> {
         match &self.command {
             Command::Stock(stock) => stock.type_hint(),
         }

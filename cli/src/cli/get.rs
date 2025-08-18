@@ -6,11 +6,11 @@ use std::{
 use arrow::json::writer::JsonArray;
 use rkshare::{
     eastmoney::cli::Eastmoney,
-    sse::cli::Sse,
-    utils::{
+    shared::{
         data::{Data, Fetch, HasTypeHint, TypeHint},
         pretty::pretty_print,
     },
+    sse::cli::Sse,
     xueqiu::cli::Xueqiu,
 };
 

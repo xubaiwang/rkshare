@@ -10,7 +10,7 @@ pub struct Utils {
 #[argh(subcommand)]
 pub enum Command {
     /// 股票代码格式转换
-    Convert(rkshare::utils::cli::Convert),
+    Convert(rkshare::shared::cli::Convert),
 }
 
 impl Utils {

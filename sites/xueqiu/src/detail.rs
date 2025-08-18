@@ -4,7 +4,7 @@ use anyhow::{Context, Result, anyhow};
 use arrow::{array::RecordBatch, datatypes::Schema, json::ReaderBuilder};
 use bon::Builder;
 use reqwest::header::HeaderMap;
-use rkshare_utils::{
+use rkshare_shared::{
     EmptyRaw, FieldsInfo, Symbol,
     data::{Data, Fetch, HasTypeHint, TypeHint, TypedBytes},
     mapping,
