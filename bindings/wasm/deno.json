@@ -1,0 +1,6 @@
+{
+  "tasks": {
+    "wasmbuild": "deno run -A jsr:@deno/wasmbuild@0.19.2",
+    "build": "deno task wasmbuild build --project rkshare-wasm"
+  }
+}

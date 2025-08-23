@@ -1,0 +1,16 @@
+[package]
+name = "rkshare-wasm"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+rkshare = { version = "0.1.0", path = "../../rkshare" }
+wasm-bindgen = "0.2.100"
+wasm-bindgen-futures = "0.4.50"
+arrow-wasm = { git = "https://github.com/kylebarron/arrow-wasm" }
+
+[lints]
+workspace = true
